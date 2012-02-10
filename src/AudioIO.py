@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """ Provides audio interface to playback and capture audio.
 
-AudioIO is a class that utilizes PortAudio, in order to make a platform 
+AudioIO is a class that utilizes PortAudio, in order to make a platform
 independent audio interface.  It provides means to playback and record audio
 signals at the same time.  It also provides a class to retreive audio device
 information
 """
-from numpy import * 
+
+from numpy import *
 from ctypes import *
 from ctypes.util import *
 import logging
@@ -14,41 +15,46 @@ import logging
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
 
+
 # Structures used to communicate with PortAudio C Library
 class _PaData(Structure):
-  _fields_ = [("sample_index", c_ulong),
-              ("left_signal_length", c_ulong),
-              ("right_signal_length", c_ulong),
-              ("left_channel_signal", c_void_p),
-              ("right_channel_signal", c_void_p),
-              ("num_samples_read", c_ulong),
-              ("left_channel_buffer", c_void_p),
-              ("right_channel_buffer", c_void_p),
-              ("first_run", c_double)]
+    _fields_ = [("sample_index", c_ulong),
+                ("left_signal_length", c_ulong),
+                ("right_signal_length", c_ulong),
+                ("left_channel_signal", c_void_p),
+                ("right_channel_signal", c_void_p),
+                ("num_samples_read", c_ulong),
+                ("left_channel_buffer", c_void_p),
+                ("right_channel_buffer", c_void_p),
+                ("first_run", c_double)]
+
 
 class _PaDeviceInfo(Structure):
-  _fields_ = [("structVersion", c_int),
-              ("name", c_char_p),
-              ("hostApi", c_int),
-              ("maxInputChannels", c_int),
-              ("maxOutputChannels", c_int),
-              ("defaultLowInputLatency", c_double),
-              ("defaultLowOutputLatency", c_double),
-              ("defaultHighInputLatency", c_double),
-              ("defaultHighOutputLatency", c_double),
-              ("defaultSampleRate", c_double)]
+    _fields_ = [("structVersion", c_int),
+                ("name", c_char_p),
+                ("hostApi", c_int),
+                ("maxInputChannels", c_int),
+                ("maxOutputChannels", c_int),
+                ("defaultLowInputLatency", c_double),
+                ("defaultLowOutputLatency", c_double),
+                ("defaultHighInputLatency", c_double),
+                ("defaultHighOutputLatency", c_double),
+                ("defaultSampleRate", c_double)]
+
 
 class _PaStreamParameters(Structure):
-  _fields_ = [("device", c_int),
-              ("channelCount", c_int),
-              ("sampleFormat", c_ulong),
-              ("suggestedLatency", c_double),
-              ("hostApiSpecificStreamInfo", c_void_p),]
+    _fields_ = [("device", c_int),
+                ("channelCount", c_int),
+                ("sampleFormat", c_ulong),
+                ("suggestedLatency", c_double),
+                ("hostApiSpecificStreamInfo", c_void_p)]
+
 
 class _PaStreamCallbackTimeInfo(Structure):
-  _fields_ = [("inputBufferAdcTime", c_double),
-              ("currentTime", c_double),
-              ("outputBufferDacTime", c_double)]
+    _fields_ = [("inputBufferAdcTime", c_double),
+                ("currentTime", c_double),
+                ("outputBufferDacTime", c_double)]
+
 
 class AudioDevice(object):
 
@@ -80,15 +86,15 @@ class AudioDevice(object):
         self.index = index
         self.input_channels = input_channels
         self.output_channels = output_channels
-    
+
 
 class AudioIO(object):
     # Number of frames stored in the buffer
     _FRAMES_PER_BUFFER = 4096
 
     def __init__(self, sample_rate):
-        """ Default Constructor 
-        
+        """ Default Constructor
+
         :param sample_rate:
             The sample rate to use for playback and capture.
         :type sample_rate:
@@ -100,23 +106,24 @@ class AudioIO(object):
         self.sample_rate = float(sample_rate)
 
         self._loadPortAudio()
+
     def __del__(self):
         """Deconstructor to terminate connection to PortAudio """
         self.logger.debug("Deleting AudioIO Object")
 
         self.port_audio.Pa_Terminate()
-    
+
     def _loadPortAudio(self):
-        """ Load the PortAudio library 
-        
-        Tries to locate the PortAudio library, and load it.  If it can't be 
+        """ Load the PortAudio library
+
+        Tries to locate the PortAudio library, and load it.  If it can't be
         found, or initialiazed, an Exception will be raised.
         """
         self.logger.debug("Entering _loadPortAudio")
 
         if find_library("portaudio") == "":
-              raise Exception("Port Audio not found")
-          
+            raise Exception("Port Audio not found")
+
         self.port_audio = CDLL(find_library("portaudio"))
 
         error = self.port_audio.Pa_Initialize()
@@ -124,16 +131,16 @@ class AudioIO(object):
         if error != 0:
             error_text = self.port_audio.Pa_GetErrorText(error)
             raise Exception("Error initializing Port Audio: %s" % (error_text))
-    
+
     def getAudioDevices(self):
         """ Method to return list of audio devices present.
 
-        Queries PortAudio to return a list of audio devices present in the 
+        Queries PortAudio to return a list of audio devices present in the
         system, along with the audio device name, it also returns the number
         of input and output devices, and its specific device index.
 
         :returns:
-            array : An array of AudioDevice objects, containing the audio 
+            array : An array of AudioDevice objects, containing the audio
             devices available on in the system.
         """
         self.logger.debug("Entering getAudioDevices")
@@ -142,21 +149,21 @@ class AudioIO(object):
 
         device_count = self.port_audio.Pa_GetDeviceCount()
         for device_index in range(device_count):
-          # Ask Port Audio for the device info with specified device_index
-          self.port_audio.Pa_GetDeviceInfo.restype = POINTER(_PaDeviceInfo)  
-          pa_device_info = self.port_audio.Pa_GetDeviceInfo(device_index)
-          
-          name = pa_device_info.contents.name
-          input_channels = pa_device_info.contents.maxInputChannels
-          output_channels = pa_device_info.contents.maxOutputChannels
+            # Ask Port Audio for the device info with specified device_index
+            self.port_audio.Pa_GetDeviceInfo.restype = POINTER(_PaDeviceInfo)
+            pa_device_info = self.port_audio.Pa_GetDeviceInfo(device_index)
 
-          audio_device = AudioDevice(name, device_index, input_channels,
+            name = pa_device_info.contents.name
+            input_channels = pa_device_info.contents.maxInputChannels
+            output_channels = pa_device_info.contents.maxOutputChannels
+
+            audio_device = AudioDevice(name, device_index, input_channels,
                                        output_channels)
-          
-          audio_devices.append(audio_device)
+
+            audio_devices.append(audio_device)
 
         return audio_devices
-    
+
     def setInputDevice(self, device_index):
         """ Sets the input device to capture the signals.
 
@@ -168,7 +175,7 @@ class AudioIO(object):
         self.logger.debug("Entering setInputDevice (%s)" % (device_index))
 
         self.input_device = device_index
-    
+
     def setOutputDevice(self, device_index):
         """ Sets the output device to playback the signals.
 
@@ -180,31 +187,31 @@ class AudioIO(object):
         self.logger.debug("Entering setOutputDevice (%s)" % (device_index))
 
         self.output_device = device_index
-    
+
     def playbackAndRecord(self, left_channel_signal, right_channel_signal):
         """ Playback the given signal and record the response.
 
         Plays back the specified left and right channel signals.  While playing
-        the signal, record the response.  When the signal with the longest 
+        the signal, record the response.  When the signal with the longest
         length has finished playing, return the recorded response.
 
-        This is a blocking function, and only returns when the signals have 
+        This is a blocking function, and only returns when the signals have
         completed playing.
 
         :param left_channel_signal:
             The signal to playback through the left channel.
         :type left_channel_signal:
-            Array representing the signal, containing float values between -1 
+            Array representing the signal, containing float values between -1
             and +1.
         :param right_channel_signal:
             The signal to playback through the right channel.
         :type right_channel_signal:
-            Array representing the signal, containing float values between -1 
+            Array representing the signal, containing float values between -1
             and +1.
-        
+
         :returns:
             tuple : a two-tuple, with the first element an array containing the
-            the left channel recorded response, and the second element 
+            the left channel recorded response, and the second element
             containing the right channel response.
         """
         self.logger.debug("Entering playbackAndRecord")
@@ -216,37 +223,37 @@ class AudioIO(object):
         error = self.port_audio.Pa_StartStream(self.stream)
         if error < 0:
             error_text = self.port_audio.Pa_GetErrorText(error)
-            raise Exception("Couldn't start stream: %s"%(error_text))
-        
+            raise Exception("Couldn't start stream: %s" % (error_text))
+
         # Wait until completed playback
         while self.port_audio.Pa_IsStreamActive(self.stream) == 1:
             self.port_audio.Pa_Sleep(500)
-        
+
         # Ensure the stream has stopped
         self.port_audio.Pa_StopStream(self.stream)
 
         # Retrieve the recorded response
-        left_channel_buffer = cast(self.data.left_channel_buffer, 
+        left_channel_buffer = cast(self.data.left_channel_buffer,
                                    POINTER(c_float))
-    
-        right_channel_buffer  = cast(self.data.right_channel_buffer, 
+
+        right_channel_buffer = cast(self.data.right_channel_buffer,
                                      POINTER(c_float))
 
         # Cast to Python array
         left_channel_data = []
         right_channel_data = []
-        
+
         samples_read = self.data.num_samples_read
         for signal_index in range(samples_read):
             left_channel_data.append(left_channel_buffer[signal_index])
             right_channel_data.append(right_channel_buffer[signal_index])
-        
+
         return (left_channel_data, right_channel_data)
-    
+
     def _openStream(self, left_channel_signal, right_channel_signal):
-        """ Open a PortAudio stream to playback the specified signals, and 
+        """ Open a PortAudio stream to playback the specified signals, and
             record the response.
-        
+
         Creates a new stream, and passes the stream information to PortAudio.
 
         Raises an Exception if the stream could not open.
@@ -254,7 +261,7 @@ class AudioIO(object):
         :param left_channel_signal:
             The signal to playback through the left channel.
         :type left_channel_signal:
-            Array representing the signal, containing float values between -1 
+            Array representing the signal, containing float values between -1
             and +1.
         :param right_channel_signal:
             The signal to playback through the right channel.
@@ -266,7 +273,7 @@ class AudioIO(object):
         output_paramaters = _PaStreamParameters()
 
         # Set input device
-        self.port_audio.Pa_GetDeviceInfo.restype = POINTER(_PaDeviceInfo)  
+        self.port_audio.Pa_GetDeviceInfo.restype = POINTER(_PaDeviceInfo)
         device_info = self.port_audio.Pa_GetDeviceInfo(self.input_device)
         input_paramaters.device = self.input_device
         input_paramaters.channelCount = 2
@@ -276,11 +283,11 @@ class AudioIO(object):
         input_paramaters.hostApiSpecificStreamInfo = c_void_p()
 
         # Set output device
-        self.port_audio.Pa_GetDeviceInfo.restype = POINTER(_PaDeviceInfo)  
+        self.port_audio.Pa_GetDeviceInfo.restype = POINTER(_PaDeviceInfo)
         device_info = self.port_audio.Pa_GetDeviceInfo(self.output_device)
         output_paramaters.device = self.output_device
         output_paramaters.channelCount = 2
-        output_paramaters.sampleFormat = c_ulong(1) 
+        output_paramaters.sampleFormat = c_ulong(1)
         latency = device_info.contents.defaultHighOutputLatency
         output_paramaters.suggestedLatency = latency
         output_paramaters.hostApiSpecificStreamInfo = c_void_p()
@@ -288,25 +295,25 @@ class AudioIO(object):
         # Reserve space for the signal
         left_signal_length = len(left_channel_signal)
         right_signal_length = len(left_channel_signal)
-        
+
         self.left_channel_signal_memory = (c_float * left_signal_length)()
         self.right_channel_signal_memory = (c_float * right_signal_length)()
 
         # Copy the signal data to the memory
         for signal_index in range(left_signal_length):
-          self.left_channel_signal_memory[signal_index] = (
-              left_channel_signal[signal_index])
-        
+            self.left_channel_signal_memory[signal_index] = (
+                left_channel_signal[signal_index])
+
         for signal_index in range(right_signal_length):
-          self.right_channel_signal_memory[signal_index] = (
-              right_channel_signal[signal_index])
-        
+            self.right_channel_signal_memory[signal_index] = (
+                right_channel_signal[signal_index])
+
         # Reserve memory to record the response
         max_signal_length = max(left_signal_length, right_signal_length)
 
         self.left_channel_buffer = (c_float * max_signal_length)()
         self.right_channel_buffer = (c_float * max_signal_length)()
-        
+
         # Create the Data structure
         left_signal_address = addressof(self.left_channel_signal_memory)
         right_signal_address = addressof(self.right_channel_signal_memory)
@@ -323,52 +330,53 @@ class AudioIO(object):
         self.data.right_channel_signal = right_signal_address
         self.data.left_channel_buffer = left_buffer_address
         self.data.right_channel_buffer = right_buffer_address
-        
+
         # Open the stream
         PACALLBACK = CFUNCTYPE(c_int, c_void_p, c_void_p, c_ulong,
-                             POINTER(_PaStreamCallbackTimeInfo), 
+                             POINTER(_PaStreamCallbackTimeInfo),
                              c_ulong, c_void_p)
-      
+
         self.pa_callback_cfunc = PACALLBACK(self.pa_callback)
-        
+
         self.stream = c_void_p()
         pa_openstream = self.port_audio.Pa_OpenStream
-        pa_openstream.argtypes = [POINTER(c_void_p), 
+        pa_openstream.argtypes = [POINTER(c_void_p),
                                   POINTER(_PaStreamParameters),
-                                  POINTER(_PaStreamParameters), c_double, 
+                                  POINTER(_PaStreamParameters), c_double,
                                   c_long, c_long, c_void_p, POINTER(_PaData)]
 
         pa_openstream.restype = c_int
-        error = pa_openstream(pointer(self.stream), pointer(input_paramaters), 
+        error = pa_openstream(pointer(self.stream), pointer(input_paramaters),
                       pointer(output_paramaters), self.sample_rate,
-                      self._FRAMES_PER_BUFFER,1, self.pa_callback_cfunc, 
+                      self._FRAMES_PER_BUFFER, 1, self.pa_callback_cfunc,
                       pointer(self.data))
-        
+
         if error < 0:
             error_text = self.port_audio.Pa_GetErrorText(error)
             raise Exception("Couldn't open stream: %s" % (error_text))
 
     @staticmethod
-    def pa_callback(input_buffer, output_buffer, frames_per_buffer, time_info, 
+    def pa_callback(input_buffer, output_buffer, frames_per_buffer, time_info,
                   status_flags, user_data):
         """PortAudio callback function called to fill PortAudio's buffer.
 
-        It provides PortAudio with signal to playback, as well as store data 
+        It provides PortAudio with signal to playback, as well as store data
         captured by PortAudio.
 
         :param input_buffer:
-            A pointer to the input (microphone) buffer, which contains the frames 
-            read from the input channel.
+            A pointer to the input (microphone) buffer, which contains the
+            frames read from the input channel.
         :type input_buffer:
             ctype pointer
         :param output_buffer:
-            A pointer to the output buffer, which contains the signal to be played
-            back.
+            A pointer to the output buffer, which contains the signal to be
+            played back.
         :type output_buffer:
             ctype pointer
         :param frames_per_buffer:
-            The number of frames PortAudio expects to fill up the output buffer, 
-            as well as the number of frame it has provided in the input buffer.
+            The number of frames PortAudio expects to fill up the output
+            buffer, as well as the number of frame it has provided in the
+            input buffer.
         :type frames_per_buffer:
             int
         :param time_info:
@@ -380,91 +388,97 @@ class AudioIO(object):
         :type status_flags:
             long
         :param user_data:
-            A pointer to the user data structure, to be used to fill buffers, both
-            input and output.
+            A pointer to the user data structure, to be used to fill buffers,
+            both input and output.
         :type user_data:
             ctype pointer
-        
+
         :returns:
-            Status indicating if Port Audio needs to continue with the stream 
+            Status indicating if Port Audio needs to continue with the stream
             0 means continue, and 1 means stop.
         """
         # Cast variables so that they can be used
         data = cast(user_data, POINTER(_PaData))
         out_ptr = cast(output_buffer, POINTER(c_float))
         in_ptr = cast(input_buffer, POINTER(c_float))
-        
+
         # Determine the maximum signal length, as left channel's signal may be
         # different to the right channel.
-        max_length = max ( [data.contents.left_signal_length,
-                            data.contents.right_signal_length ] )
-        
-        # Determine how many samples to read from the microphone, bearing in mind
-        # that we only want as many samples as the longest signal provided.
-        read_length = min( [max_length - data.contents.num_samples_read,
+        max_length = max([data.contents.left_signal_length,
+                            data.contents.right_signal_length])
+
+        # Determine how many samples to read from the microphone, bearing in
+        # mind that we only want as many samples as the longest signal
+        # provided.
+        read_length = min([max_length - data.contents.num_samples_read,
                             frames_per_buffer])
         # Cast the pointers into usable c_float pointers
-        left_channel_buffer = cast(data.contents.left_channel_buffer, 
+        left_channel_buffer = cast(data.contents.left_channel_buffer,
                                    POINTER(c_float))
-        right_channel_buffer  = cast(data.contents.right_channel_buffer, 
+        right_channel_buffer = cast(data.contents.right_channel_buffer,
                                      POINTER(c_float))
-        
+
         if data.contents.first_run:
-          # Ignore the first run's buffer
-          data.contents.first_run = False
+            # Ignore the first run's buffer
+            data.contents.first_run = False
         else:
-          # Read the information from the microphone, keeping in mind that the data
-          # is interleaved, with the first c_float the left channel, the next
-          # c_float the right channel, and alternating from there.
-          for i in range ( read_length ):
-            index = 2 * i
-            left_channel_buffer[i + data.contents.num_samples_read] = (
-                                                      c_float(in_ptr[index]) )
-            right_channel_buffer[i + data.contents.num_samples_read]  = (
-                                                      c_float(in_ptr[index + 1]) )
-      
-          data.contents.num_samples_read += read_length
-        
+            # Read the information from the microphone, keeping in mind that
+            # the data is interleaved, with the first c_float the left
+            # channel, the next c_float the right channel, and alternating
+            # from there.
+            for i in range(read_length):
+                index = 2 * i
+                left_channel_buffer[i + data.contents.num_samples_read] = (
+                                                    c_float(in_ptr[index]))
+                right_channel_buffer[i + data.contents.num_samples_read] = (
+                                                    c_float(in_ptr[index + 1]))
+
+                data.contents.num_samples_read += read_length
+
         # Play Signal
-        left_channel_signal = cast(data.contents.left_channel_signal, 
+        left_channel_signal = cast(data.contents.left_channel_signal,
                                    POINTER(c_float))
-        
-        right_channel_signal  = cast(data.contents.right_channel_signal, 
+
+        right_channel_signal = cast(data.contents.right_channel_signal,
                                      POINTER(c_float))
         for i in range(frames_per_buffer):
-          # The output pointer is interleaved
-          index = 2*i 
-          # Left Channel
-          if ( i + data.contents.sample_index < data.contents.left_signal_length):
-            out_ptr[index] = c_float(left_channel_signal[i + 
-                                                       data.contents.sample_index])
-          else:
-            out_ptr[index]=  c_float(0)
-            
-          # Then Right
-          if ( i + data.contents.sample_index < data.contents.right_signal_length):
-            out_ptr[index+1] = c_float(right_channel_signal[i  + 
-                                                        data.contents.sample_index])
-          else:
-            out_ptr[index+1] =  c_float(0)
-        
+            # The output pointer is interleaved
+            index = 2 * i
+            # Left Channel
+            if (i + data.contents.sample_index <
+                data.contents.left_signal_length):
+
+                out_ptr[index] = c_float(left_channel_signal[i +
+                    data.contents.sample_index])
+            else:
+                out_ptr[index] = c_float(0)
+
+            # Then Right
+            if (i + data.contents.sample_index <
+                data.contents.right_signal_length):
+
+                out_ptr[index + 1] = c_float(right_channel_signal[i +
+                    data.contents.sample_index])
+            else:
+                out_ptr[index + 1] = c_float(0)
+
         # Only update the sample index, if it is less than the maximum signal
         # length, else we don't care as there is no more signal left
-        if data.contents.sample_index < max_length :
-          data.contents.sample_index += frames_per_buffer
-        
+        if data.contents.sample_index < max_length:
+            data.contents.sample_index += frames_per_buffer
+
         # Return 0, to continue, if we still need to read more samples
         return int(data.contents.num_samples_read >= max_length)
 
-    
-if __name__=="__main__":
+
+if __name__ == "__main__":
     """ A simple example showing the use of the Audio Interface """
     logger = logging.getLogger("Alpha")
     logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
-    
+
     sample_rate = 44100.0
 
     audio = AudioIO(sample_rate)
@@ -477,9 +491,9 @@ if __name__=="__main__":
         input_channels = audio_device.input_channels
         output_channels = audio_device.output_channels
 
-        print "%s: %s" %(device_index, device_name)
-        print "Input Channels: %s"%(input_channels)
-        print "Output Channels: %s"%(output_channels)
+        print "%s: %s" % (device_index, device_name)
+        print "Input Channels: %s" % (input_channels)
+        print "Output Channels: %s" % (output_channels)
 
         if input_channels > 0:
             audio.setInputDevice(device_index)
@@ -490,7 +504,7 @@ if __name__=="__main__":
     s = sin(2 * pi * 440 * t)
 
     (left, right) = audio.playbackAndRecord(s, s)
-    
+
     from pylab import *
     subplot(211)
     plot(left)
@@ -499,6 +513,5 @@ if __name__=="__main__":
     plot(right)
     title("Right Channel")
     show()
-
 
     pass
