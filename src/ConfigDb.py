@@ -77,6 +77,9 @@ class ConfigDb(object):
             "output device": 0,
             "sample rate": 44100,
             "fft size": 2 ** 18,
+            "noise samples": 1000,
+            "impulse constant": 15,
+            "impulse threshold": 0.02
         }
 
         self.saveSettings("config", config_defaults)
