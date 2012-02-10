@@ -30,7 +30,8 @@ class MlsDb(object):
         try:
             self.conn = sqlite3.connect(self._MLS_FILENAME)
         except sqlite3.OperationalError as error:
-            self.logger.error("Could not open %s: %s"%(_MLS_FILENAME, error))
+            self.logger.error("Could not open %s: %s"%(self._MLS_FILENAME, 
+                                                       error))
             raise Exception("Database Error: %s"%(error))
         
         self.conn.row_factory = self._dict_factory
@@ -411,7 +412,7 @@ if __name__=="__main__":
 
     mls_signal = mls_db.getMls(3)
     mls_signal = -2 * mls_signal + 1
-    
+
     print mls_signal
 
     response = mls_db.getSystemResponse(mls_signal, 3)

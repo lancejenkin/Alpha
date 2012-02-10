@@ -5,7 +5,6 @@
 
 
 """
-
 import logging
 
 __author__ = "Lance Jenkin"
