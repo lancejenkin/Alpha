@@ -12,18 +12,18 @@ import os
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
 
-class SignalDb(object):
+class MeasurementDb(object):
     
     def __init__(self, filename):
-        """ Constructor for SignalDb obect.
+        """ Constructor for MeasurementDb obect.
 
         :param filename:
-            The filename to save the signal to.
+            The filename where the measurement will be saved.
         :type filename:
             str
         """
         self.logger = logging.getLogger("Alpha")
-        self.logger.debug("Creating SignalDb Object")
+        self.logger.debug("Creating MeasurementDb Object")
 
         if os.path.exists(filename):
             os.remove(filename)
@@ -36,6 +36,14 @@ class SignalDb(object):
         
         self._setupDatabase()
     
+    def __del__(self):
+        """ Deconstructor, ensures that the changes to the database have be 
+            commited.
+        """
+        self.logger.debug("Entering __del__")
+
+        self.conn.commit()
+        
     def _setupDatabase(self):
         """ Setup signal database schema so that signals can be saved. """
         self.logger.debug("Entering _setupDatabase")
@@ -46,6 +54,10 @@ class SignalDb(object):
                         "key" TEXT PRIMARY KEY,
                         "value" TEXT)""")
         
+        cursor.execute("""CREATE TABLE "analysis" (
+                        "key" TEXT PRIMARY KEY,
+                        "value" TEXT)""")
+
         cursor.execute("""CREATE TABLE "signal" (
                         "id" INTEGER PRIMARY KEY,
                         "signal" BLOB,
@@ -55,8 +67,8 @@ class SignalDb(object):
         self.conn.commit()
         cursor.close()
     
-    def saveSignalAttributes(self, attributes):
-        """ Save attributes associated with the signals.
+    def saveMeasurementAttributes(self, attributes):
+        """ Save attributes associated with the measurment.
 
         When saving a new signal, the attributes will contain the measurement 
         settings used when creating the signal.  When analysing a signal it 
@@ -68,7 +80,7 @@ class SignalDb(object):
         :type attributes:
             dict
         """
-        self.logger.debug("Entering saveSignalAttributes")
+        self.logger.debug("Entering saveMeasurementAttributes")
 
         cursor = self.conn.cursor()
 
@@ -80,6 +92,43 @@ class SignalDb(object):
 
         cursor.close()
     
+    def saveAnalysisSettings(self, analysis_settings):
+        """ Saved the settings used to analyse the signals.
+
+        :param settings:
+            A dictionary of settings used to analyse the signals.
+        :type settings:
+            dict
+        """
+        self.logger.debug("Entering saveAnalysisSettings")
+
+        cursor = self.conn.cursor()
+
+        for key, value in attributes.items():
+            cursor.execute("""REPLACE INTO "analysis" ("key", "value") 
+                                VALUES (?, ?)""", (key, value,))
+        
+        self.conn.commit()
+
+        cursor.close()
+    
+    def isAnalysed(self):
+        """ Determine if the signals have be analysed by counting the records
+            in the analysis table.
+        """
+        self.logger.debug("Entering isAnalysed")
+
+        cursor = self.conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) as count FROM analysis")
+
+        row = cursor.fetchone()
+
+        if int(row["count"]) > 0:
+            return True
+        else:
+            return False
+
     def saveSignal(self, input_signal, generator_signal):
         """ Save captured input and generator signals.
 
@@ -109,11 +158,11 @@ class SignalDb(object):
         
         cursor.close()
     
-    def getAttributes(self):
-        """ Get all attributes for the signals.
+    def getMeasurementSettings(self):
+        """ Get measurement settings used to measure the signals.
 
         :returns:
-            dict - A dictionary containing all the attributes
+            dict - A dictionary containing all the measurement_settings
         """
         self.logger.debug("Entering getAttributes")
 
@@ -123,14 +172,33 @@ class SignalDb(object):
 
         results = cursor.fetchall()
 
-        attributes = {}
+        measurement_settings = {}
         for row in results:
             attributes[row["key"]] = row["value"]
         
         cursor.close()
 
-        return attributes
+        return measurement_settings
     
+    def getAnalysisSettings(self):
+        """ Get the analysis settings saved in the database, if any.
+        """
+        self.logger.debug("Entering getAnalysisSettings")
+
+        cursor = self.conn.cursor()
+
+        cursor.execute("SELECT * FROM analysis")
+
+        results = cursor.fetchall()
+
+        analysis_settings = {}
+        for row in results:
+            analysis_settings[row["key"]] = row["value"]
+        
+        cursor.close()
+
+        return analysis_settings
+
     def getSignals(self):
         """ Return all the signals in the database.
 

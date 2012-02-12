@@ -92,11 +92,12 @@ class AudioIO(object):
     # Number of frames stored in the buffer
     _FRAMES_PER_BUFFER = 4096
 
-    def __init__(self, sample_rate):
+    def __init__(self, sample_rate=44100):
         """ Default Constructor
 
         :param sample_rate:
-            The sample rate to use for playback and capture.
+            The sample rate to use for playback and capture. Defaults to 
+            44.1 kHz.
         :type sample_rate:
             An int or float, gets converted to float.
         """

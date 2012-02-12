@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+""" Provides the controller for the RapidView
+
+The RapidAlpha view provides a means to preform a quick absorption measurement
+of a material.  The only settings that can be changed in the rapid view, is the
+selecting of input and output devices.
+"""
+
+import logging
+
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
+from RapidView.RapidAlphaWindow import RapidAlphaWindow
+
+__author__ = "Lance Jenkin"
+__email__ = "lancejenkin@gmail.com"
+
+class RapidController(RapidAlphaWindow):
+    # pyqtSignals
+    startMeasurement = pyqtSignal()
+    saveGraph = pyqtSignal("QString")
+    exportData = pyqtSignal("QString")
+    loadMeasurement = pyqtSignal("QString")
+    saveMeasurement = pyqtSignal("QString")
+    exit = pyqtSignal()
+
+    def __init__(self, measurement_settings, audio_devices):
+        """ Constructor for RapidController, sets up the view, signals and shows
+            the window.
+
+            :param measurement_settings:
+                A dictionary containg the settings to used for the measurement.
+            :type measurement_settings:
+                dict
+            :param audio_devices:
+                A list of all the input / output devices available in the 
+                system.
+            :type:
+                array of AudioDevice
+        """
+        self.logger = logging.getLogger("Alpha")
+        self.logger.debug("Creating RapidController")
+
+        self.measurement_settings = measurement_settings
+        self.audio_devices = audio_devices
+
+        self.setupUi(self)
+        self._setupWidgets()
+        self._setupSignals()
+
+        self.show()
+    
+    def _setupWidgets(self):
+        """ Setup the widgets to show the user.
+
+            For the rapid view, the input / output devices are populated, and 
+            the graph is formatted.
+        """
+        self.logger.debug("Entering _setupWidgets")
+
+        # Populate the input / output devices
+        for audio_device in self.audio_devices:
+            name = audio_device.name
+            index = audio_device.index
+            if audio_device.input_channels > 0:
+                self.InputDeviceList.addItem(name, index)
+            if audio_device.output_channels > 0:
+                self.OutputDeviceList.addItem(name, index)
+        
+        # Set the selected input and output deivce
+        default_input_device = self.measurement_settings["input device"]
+        default_output_device = self.measurement_settings["output device"]
+
+        index = self.InputDeviceList.findItem(default_input_device)
+        self.InputDeviceList.setCurrentIndex(index)
+
+        index = self.OutputDeviceList.findItem(default_output_device)
+        self.OutputDeviceList.setCurrentIndex(index)
+
+    def _updateMeasurementSettings(self):
+        """ Update the Measurement Settings dictionary.
+
+        For the Rapid View, the only settings that change are the input and 
+        output devices.
+        """
+        self.logger.debug("Entering _updateMeasurementSettings")
+
+        selected_index = self.InputDeviceList.currentIndex
+        input_device = int(self.InputDeviceList.itemData(selected_index))
+        self.measurement_settings["input device"] = input_device
+
+        selected_index = self.OutputDeviceList.currentIndex
+        output_device = int(self.OutputDeviceList.itemData(selected_index))
+        self.measurement_settings["output device"] = output_device
+        
+    def _setupSignals(self):
+        """ Connects the various button signals to the class signals. """
+        self.logger.debug("Entering setupSignals")
+
+
+
+

@@ -50,6 +50,8 @@ class Measurement(object):
         self.input_response = left_channel
         self.generator_response = right_channel
 
+        self._initialAnalysis()
+
     def _initialAnalysis(self):
         """ Preform the initial analysis on the received response.
 
@@ -70,15 +72,15 @@ class Measurement(object):
         input_signal = input_signals[0]
         generator_signal = generator_signals[0]
 
-        input_impulse_loc = self.locateSignalImpulse(input_signal)
-        generator_impulse_loc = self.locateGeneratorImpulse(generator_signal)
+        input_impulse_loc = self._locateSignalImpulse(input_signal)
+        generator_impulse_loc = self._locateGeneratorImpulse(generator_signal)
 
         self.measurement_settings["input impulse location"] = (
             input_impulse_loc)
         self.measurement_settings["generator impulse location"] = (
             generator_impulse_loc)
 
-    def locateSignalImpulse(self, signal):
+    def _locateSignalImpulse(self, signal):
         """ Locates the synchronization impulse in the microphone response.
 
         Finding the synchronization impulse in the microphone is complicated
@@ -90,7 +92,7 @@ class Measurement(object):
         maximum value is then taken as the peak noise level, and the impulse
         is determined to be in the sample that is T times the peak noise level.
         """
-        self.logger.debug("Entering locateSignalImpulse")
+        self.logger.debug("Entering _locateSignalImpulse")
 
         noise_samples = self.measurement_settings["noise samples"]
         impulse_constant = self.measurement_settings["impulse constant"]
@@ -109,7 +111,7 @@ class Measurement(object):
         self.logger.debug("Impulse not found")
         return -1
 
-    def locateGeneratorImpulse(self, signal):
+    def _locateGeneratorImpulse(self, signal):
         """ Locates the synchronization impulse in the generator response.
 
         Due to the high SNR of the generator signal, a simple threshold
@@ -129,7 +131,7 @@ class Measurement(object):
             int - The start index of the impulse
         """
 
-        self.logger.debug("Entering locate_generator_impulse")
+        self.logger.debug("Entering _locateGeneratorImpulse")
 
         threshold = self.measurement_settings["impulse threshold"]
         # Get the envolope of the signal, removing the pre-ringing
