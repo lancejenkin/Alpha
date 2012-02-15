@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'RapidAlphaWindow.ui'
 #
-# Created: Sun Feb 12 09:44:11 2012
+# Created: Mon Feb 13 14:11:48 2012
 #      by: PyQt4 UI code generator 4.9
 #
 # WARNING! All changes made in this file will be lost!
@@ -45,7 +45,7 @@ class Ui_RapidAlphaWindow(object):
         self.horizontalLayout_3.setObjectName(_fromUtf8("horizontalLayout_3"))
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem1)
-        self.StartMesurement = QtGui.QCommandLinkButton(self.centralwidget)
+        self.StartMesurement = QtGui.QPushButton(self.centralwidget)
         self.StartMesurement.setObjectName(_fromUtf8("StartMesurement"))
         self.horizontalLayout_3.addWidget(self.StartMesurement)
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -56,21 +56,26 @@ class Ui_RapidAlphaWindow(object):
         self.verticalLayout.addWidget(self.AlphaPlot)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
+        self.SaveMeasurement = QtGui.QPushButton(self.centralwidget)
+        self.SaveMeasurement.setObjectName(_fromUtf8("SaveMeasurement"))
+        self.horizontalLayout_2.addWidget(self.SaveMeasurement)
+        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem3)
         self.SaveGraph = QtGui.QPushButton(self.centralwidget)
         self.SaveGraph.setObjectName(_fromUtf8("SaveGraph"))
         self.horizontalLayout_2.addWidget(self.SaveGraph)
-        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem3)
+        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem4)
         self.ExportData = QtGui.QPushButton(self.centralwidget)
         self.ExportData.setObjectName(_fromUtf8("ExportData"))
         self.horizontalLayout_2.addWidget(self.ExportData)
-        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem4)
-        self.LoadData = QtGui.QPushButton(self.centralwidget)
-        self.LoadData.setObjectName(_fromUtf8("LoadData"))
-        self.horizontalLayout_2.addWidget(self.LoadData)
         spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem5)
+        self.LoadMeasurement = QtGui.QPushButton(self.centralwidget)
+        self.LoadMeasurement.setObjectName(_fromUtf8("LoadMeasurement"))
+        self.horizontalLayout_2.addWidget(self.LoadMeasurement)
+        spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem6)
         self.Exit = QtGui.QPushButton(self.centralwidget)
         self.Exit.setObjectName(_fromUtf8("Exit"))
         self.horizontalLayout_2.addWidget(self.Exit)
@@ -91,10 +96,11 @@ class Ui_RapidAlphaWindow(object):
         RapidAlphaWindow.setWindowTitle(QtGui.QApplication.translate("RapidAlphaWindow", "Rapid Alpha", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Input Device:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Output Device:", None, QtGui.QApplication.UnicodeUTF8))
-        self.StartMesurement.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Preform Measurement", None, QtGui.QApplication.UnicodeUTF8))
+        self.StartMesurement.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Start Mesurement", None, QtGui.QApplication.UnicodeUTF8))
+        self.SaveMeasurement.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Save Measurement", None, QtGui.QApplication.UnicodeUTF8))
         self.SaveGraph.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Save Graph", None, QtGui.QApplication.UnicodeUTF8))
-        self.ExportData.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Export CSV", None, QtGui.QApplication.UnicodeUTF8))
-        self.LoadData.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Load Data", None, QtGui.QApplication.UnicodeUTF8))
+        self.ExportData.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Export Data", None, QtGui.QApplication.UnicodeUTF8))
+        self.LoadMeasurement.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Load Measurement", None, QtGui.QApplication.UnicodeUTF8))
         self.Exit.setText(QtGui.QApplication.translate("RapidAlphaWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
 
 from matplotlibwidget import MatplotlibWidget

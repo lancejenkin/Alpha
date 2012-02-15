@@ -1,0 +1,12 @@
+#!/bin/bash
+# Script to build QT forms to python code.
+
+# Loop through directories
+for dir in $(find ./ -type d); do
+    cd $dir
+    for qt_form in $(ls *.ui); do
+        if [ -e $qt_form ]; then
+            pyuic4 $qt_form -o ${qt_form%ui}py
+        fi
+    done
+done

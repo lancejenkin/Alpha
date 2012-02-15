@@ -295,7 +295,7 @@ class AudioIO(object):
 
         # Reserve space for the signal
         left_signal_length = len(left_channel_signal)
-        right_signal_length = len(left_channel_signal)
+        right_signal_length = len(right_channel_signal)
 
         self.left_channel_signal_memory = (c_float * left_signal_length)()
         self.right_channel_signal_memory = (c_float * right_signal_length)()
@@ -311,7 +311,6 @@ class AudioIO(object):
 
         # Reserve memory to record the response
         max_signal_length = max(left_signal_length, right_signal_length)
-
         self.left_channel_buffer = (c_float * max_signal_length)()
         self.right_channel_buffer = (c_float * max_signal_length)()
 
@@ -405,19 +404,22 @@ class AudioIO(object):
 
         # Determine the maximum signal length, as left channel's signal may be
         # different to the right channel.
-        max_length = max([data.contents.left_signal_length,
-                            data.contents.right_signal_length])
+        left_signal_length = data.contents.left_signal_length
+        right_signal_length = data.contents.right_signal_length
+        max_length = max([left_signal_length, right_signal_length])
 
         # Determine how many samples to read from the microphone, bearing in
         # mind that we only want as many samples as the longest signal
         # provided.
-        read_length = min([max_length - data.contents.num_samples_read,
-                            frames_per_buffer])
+        samples_read = data.contents.num_samples_read
+        read_length = min([max_length - samples_read, frames_per_buffer])
+        
         # Cast the pointers into usable c_float pointers
-        left_channel_buffer = cast(data.contents.left_channel_buffer,
-                                   POINTER(c_float))
-        right_channel_buffer = cast(data.contents.right_channel_buffer,
-                                     POINTER(c_float))
+        left_chan_buf = data.contents.left_channel_buffer
+        right_chan_buf = data.contents.right_channel_buffer
+        
+        left_channel_buffer = cast(left_chan_buf, POINTER(c_float))
+        right_channel_buffer = cast(right_chan_buf, POINTER(c_float))
 
         if data.contents.first_run:
             # Ignore the first run's buffer
@@ -429,37 +431,36 @@ class AudioIO(object):
             # from there.
             for i in range(read_length):
                 index = 2 * i
-                left_channel_buffer[i + data.contents.num_samples_read] = (
-                                                    c_float(in_ptr[index]))
-                right_channel_buffer[i + data.contents.num_samples_read] = (
-                                                    c_float(in_ptr[index + 1]))
+                samples_read = data.contents.num_samples_read
 
-                data.contents.num_samples_read += read_length
+                buf_index = i + samples_read
+                left_channel_buffer[buf_index] = c_float(in_ptr[index])
+                right_channel_buffer[buf_index] = c_float(in_ptr[index + 1])
+
+        data.contents.num_samples_read += read_length
 
         # Play Signal
-        left_channel_signal = cast(data.contents.left_channel_signal,
-                                   POINTER(c_float))
+        left_chan_ptr = data.contents.left_channel_signal
+        right_chan_ptr = data.contents.right_channel_signal
+        
+        left_channel_signal = cast(left_chan_ptr, POINTER(c_float))
+        right_channel_signal = cast(right_chan_ptr, POINTER(c_float))
 
-        right_channel_signal = cast(data.contents.right_channel_signal,
-                                     POINTER(c_float))
         for i in range(frames_per_buffer):
             # The output pointer is interleaved
             index = 2 * i
+            sample_index = data.contents.sample_index
             # Left Channel
-            if (i + data.contents.sample_index <
-                data.contents.left_signal_length):
-
-                out_ptr[index] = c_float(left_channel_signal[i +
-                    data.contents.sample_index])
+            left_signal_length = data.contents.left_signal_length
+            if (i + data.contents.sample_index < left_signal_length):
+                out_ptr[index] = c_float(left_channel_signal[i + sample_index])
             else:
                 out_ptr[index] = c_float(0)
 
             # Then Right
-            if (i + data.contents.sample_index <
-                data.contents.right_signal_length):
-
-                out_ptr[index + 1] = c_float(right_channel_signal[i +
-                    data.contents.sample_index])
+            right_signal_length = data.contents.right_signal_length
+            if (i + data.contents.sample_index < right_signal_length):
+                out_ptr[index + 1] = c_float(right_channel_signal[i + sample_index ])
             else:
                 out_ptr[index + 1] = c_float(0)
 

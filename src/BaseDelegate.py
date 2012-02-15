@@ -42,8 +42,9 @@ class BaseDelegate(object):
         self.analysis_settings = self.config_db.getSettings("analysis")
         # Merge config settings and signal settings to create measurment
         # settings
-        self.measurement_settings = dict(config_settings.items() + 
-                                        signal_settings.items())
+        self.measurement_settings = dict(self.config_settings.items() + 
+                                        self.signal_settings.items() +
+                                        self.analysis_settings.items())
         
         self._getAudioDevices()
     def _saveConfig(self):
@@ -83,7 +84,7 @@ class BaseDelegate(object):
         
         measurement = Measurement(measurment_settings)
 
-        measurment.startMeasurement()
+        measurement.startMeasurement()
 
         return measurement
     
@@ -105,18 +106,20 @@ class BaseDelegate(object):
         """
         self.logger.debug("Entering saveMeasurement")
 
+        measurement_filename = str(measurement_filename)
+
         measurement_db = MeasurementDb(measurement_filename)
 
         measurement_attr = measurement.measurement_settings
-        input_signals = measurement.input_signals
+        microphone_signals = measurement.microphone_signals
         generator_signals = measurement.generator_signals
 
         measurement_db.saveMeasurementAttributes(measurement_attr)
 
-        assert(len(input_signals) == len(generator_signals))
+        assert(len(microphone_signals) == len(generator_signals))
         
-        for signal_index in range(len(input_signals)):
-            measurement_db.saveSignal(input_signals[signal_index],
+        for signal_index in range(len(microphone_signals)):
+            measurement_db.saveSignal(microphone_signals[signal_index],
                                  generator_signals[signal_index])
     
     def loadMeasurement(self, measurement_filename):
@@ -140,17 +143,19 @@ class BaseDelegate(object):
         measurement_db = MeasurementDb(measurement_filename)
 
         # Get parameters from the measurement database
-        if measurement_db.isAnalyzed():
+        if measurement_db.isAnalysed():
             analysis_settings = measurement_db.getAnalysisSettings()
         else:
             analysis_settings = self.analysis_settings
         
         measurement_settings = measurement_db.getMeasurementSettings()
 
-        input_signals = measurement_db.input_signals
-        generator_signals = measurement_db.generator_signals
+        signals = measurement_db.getSignals()
 
-        alpha = AbsorptionCoefficient(input_signals, generator_signals,
+        microphone_signals = signals["microphone"]
+        generator_signals = signals["generator"]
+
+        alpha = AbsorptionCoefficient(microphone_signals, generator_signals,
                                       measurement_settings, analysis_settings)
 
         return alpha
@@ -172,17 +177,17 @@ if __name__ == "__main__":
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
 
-    self.logger.info("Creating BaseDelegate Object")
+    logger.info("Creating BaseDelegate Object")
     delegate = BaseDelegate()
-    self.logger.info("Starting Measurement")
-    measurement = delegate.newMeasurement()
-    self.logger.debug("Creating temporary file")
-    measurement_file = mkstemp()[1]
-    self.logger.info("Saving measurment")
-    delegate.saveMeasurement(measurement, measurement_file)
+    measurement_file = "/Users/lance/Programming/Python/Masters/test data/120215_asphalt.db"
+    #self.logger.info("Saving measurment")
+    #delegate.saveMeasurement(measurement, measurement_file)
     alpha = delegate.loadMeasurement(measurement_file)
 
-    py.plot(alpha.alpha)
+    py.subplot(211)
+    py.plot(alpha.microphone_response)
+    py.subplot(212)
+    py.plot(alpha.generator_response)
     py.show()
 
 

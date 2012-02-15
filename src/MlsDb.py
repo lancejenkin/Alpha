@@ -64,6 +64,11 @@ class MlsDb(object):
         """
         self.logger.debug("Entering getSystemResponse")
         
+        if len(response) < 2 ** 14 - 1:
+            self.logger.error("Reponse too short")
+            return
+            
+        response = response[:2 ** 14 - 1]
         cursor = self.conn.cursor()
         
         cursor.execute("""SELECT tag_r, tag_s FROM mls

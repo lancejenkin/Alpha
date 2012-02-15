@@ -4,10 +4,10 @@
 """
 
 import logging
+import os
 import pickle
 import sqlite3
 import zlib
-import os
 
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
@@ -24,17 +24,26 @@ class MeasurementDb(object):
         """
         self.logger = logging.getLogger("Alpha")
         self.logger.debug("Creating MeasurementDb Object")
-
+        
         if os.path.exists(filename):
-            os.remove(filename)
-
+            new_db = False
+        else:
+            new_db = True
+        
         try:
+            print filename
+
             self.conn = sqlite3.connect(filename)
         except sqlite3.OperationalError as error:
             self.logger.error("Could not open %s: %s"%(filename, error))
             raise Exception("Database Error: %s"%(error))
         
-        self._setupDatabase()
+        self.conn.row_factory = self._dict_factory
+        
+        if new_db == True:
+            self._setupDatabase()
+
+        
     
     def __del__(self):
         """ Deconstructor, ensures that the changes to the database have be 
@@ -60,7 +69,7 @@ class MeasurementDb(object):
 
         cursor.execute("""CREATE TABLE "signal" (
                         "id" INTEGER PRIMARY KEY,
-                        "signal" BLOB,
+                        "microphone" BLOB,
                         "generator" BLOB,
                         "enabled" INTEGER DEFAULT 1)""")
         
@@ -120,8 +129,12 @@ class MeasurementDb(object):
 
         cursor = self.conn.cursor()
 
-        cursor.execute("SELECT COUNT(*) as count FROM analysis")
-
+        try:
+            cursor.execute("SELECT COUNT(*) as count FROM analysis")
+        except sqlite3.OperationalError:
+            cursor.close()
+            return False
+        
         row = cursor.fetchone()
 
         if int(row["count"]) > 0:
@@ -129,12 +142,12 @@ class MeasurementDb(object):
         else:
             return False
 
-    def saveSignal(self, input_signal, generator_signal):
-        """ Save captured input and generator signals.
+    def saveSignal(self, microphone_signal, generator_signal):
+        """ Save captured microphone and generator signals.
 
-        :param input_signal:
+        :param microphone_signal:
             The signal caputred by the microphone.
-        :type input_signal:
+        :type microphone_signal:
             array of float
         :param generator_signal:
             The signal cpatured by the sound card, representing what the sound
@@ -146,14 +159,14 @@ class MeasurementDb(object):
 
         cursor = self.conn.cursor()
 
-        pickled_input = pickle.dumps(input_signal)
+        pickled_microphone = pickle.dumps(microphone_signal)
         pickled_generator = pickle.dumps(generator_signal)
 
-        compressed_input = buffer(zlib.compress(pickled_input, 9))
+        compressed_microphone = buffer(zlib.compress(pickled_microphone, 9))
         compressed_generator = buffer(zlib.compress(pickled_generator, 9))
 
-        cursor.execute("INSERT INTO signal (input, generator) VALUES (?, ?)",
-             (compressed_input, compressed_generator))
+        cursor.execute("INSERT INTO signal (microphone, generator) VALUES (?, ?)",
+             (compressed_microphone, compressed_generator))
         self.conn.commit()
         
         cursor.close()
@@ -174,7 +187,7 @@ class MeasurementDb(object):
 
         measurement_settings = {}
         for row in results:
-            attributes[row["key"]] = row["value"]
+            measurement_settings[row["key"]] = row["value"]
         
         cursor.close()
 
@@ -213,15 +226,17 @@ class MeasurementDb(object):
 
         results = cursor.fetchall()
 
-        signals = []
+        signals = {"microphone": [], "generator": [], "enabled": []}
         for row in results:
-            signal = {"input": row["input"], 
-                      "generator": row["generator"]}
+            signals["microphone"].append(pickle.loads(zlib.decompress(buffer(row["microphone"]))))
+            signals["generator"].append(pickle.loads(zlib.decompress(buffer(row["generator"]))))
+            
             # For compatibility with previous versions, need to ensure the 
             # enabled column is in the table
             if "enabled" in row:
-                signal["enabled"] = row["enabled"]
-            signals.append(signal)
+                signals["enabled"].append(row["enabled"])
+            else:
+                signals["enabled"].append(1)
         
         cursor.close()
 

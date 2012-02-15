@@ -5,6 +5,9 @@
 """
 import logging
 
+from pylab import *
+from scipy.fftpack import hilbert
+
 from AudioIO import AudioIO
 from SignalGenerator import SignalGenerator
 
@@ -44,11 +47,11 @@ class Measurement(object):
         signal_gen = SignalGenerator(self.measurement_settings)
 
         signal = signal_gen.signal
+        trigger = [1]
+        (left, right) = self.audio.playbackAndRecord(signal, trigger)
 
-        (left_channel, right_channel) = self.audio.playbackAndRecord(signal)
-
-        self.input_response = left_channel
-        self.generator_response = right_channel
+        self.microphone_response = left
+        self.generator_response = right
 
         self._initialAnalysis()
 
@@ -63,20 +66,21 @@ class Measurement(object):
         # Get required parameters
         signal_reps = int(self.measurement_settings["signal reps"])
 
-        self.input_signals = reshape(self.input_response, (signal_reps, -1))
+        # 1 Signal Repetition means 2 received signals, hence the +1
+        self.microphone_signals = reshape(self.microphone_response, (signal_reps + 1, -1))
         self.generator_signals = reshape(self.generator_response,
-                                        (signal_reps, -1))
+                                        (signal_reps + 1, -1))
 
         # Since all signals should be located in the same place, only need to
         # locate the impulse in the first signal.
-        input_signal = input_signals[0]
-        generator_signal = generator_signals[0]
+        microphone_signal = self.microphone_signals[0]
+        generator_signal = self.generator_signals[0]
 
-        input_impulse_loc = self._locateSignalImpulse(input_signal)
+        microphone_impulse_loc = self._locateSignalImpulse(microphone_signal)
         generator_impulse_loc = self._locateGeneratorImpulse(generator_signal)
 
-        self.measurement_settings["input impulse location"] = (
-            input_impulse_loc)
+        self.measurement_settings["microphone impulse location"] = (
+            microphone_impulse_loc)
         self.measurement_settings["generator impulse location"] = (
             generator_impulse_loc)
 
@@ -94,17 +98,18 @@ class Measurement(object):
         """
         self.logger.debug("Entering _locateSignalImpulse")
 
-        noise_samples = self.measurement_settings["noise samples"]
-        impulse_constant = self.measurement_settings["impulse constant"]
+        print self.measurement_settings
+        noise_samples = int(self.measurement_settings["noise samples"])
+        impulse_constant = float(self.measurement_settings["impulse constant"])
 
         # Differentiate the signal
         d_signal = r_[0, (signal[1:] - signal[:-1])]
 
         # Determine noise level
         peak_noise_lvl = max(abs(d_signal[:noise_samples]))
-
+        
         for sample_index, sample in enumerate(d_signal):
-            if abs(sample) > noise_level * IMPULSE_THRESHOLD_CONSTANT:
+            if abs(sample) > peak_noise_lvl * impulse_constant:
                 self.logger.debug("Impulse found at %s" % (sample_index))
                 return sample_index
 
@@ -133,7 +138,7 @@ class Measurement(object):
 
         self.logger.debug("Entering _locateGeneratorImpulse")
 
-        threshold = self.measurement_settings["impulse threshold"]
+        threshold = float(self.measurement_settings["impulse threshold"])
         # Get the envolope of the signal, removing the pre-ringing
         signal = abs(hilbert(signal))
 
@@ -156,7 +161,7 @@ class Measurement(object):
 
         self.audio = AudioIO(sample_rate)
 
-        input_device = self.measurement_settings["input device"]
-        output_device = self.measurement_settings["output device"]
+        input_device = int(self.measurement_settings["input device"])
+        output_device = int(self.measurement_settings["output device"])
         self.audio.setInputDevice(input_device)
         self.audio.setOutputDevice(output_device)

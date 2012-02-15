@@ -10,6 +10,7 @@ MLS signals are precalculated, and retrieved from a database using a seperate
 interface.
 """
 from pylab import *
+from scipy.signal import butter, lfilter
 import logging
 
 from scikits.samplerate import resample
@@ -35,7 +36,7 @@ class SignalGenerator(object):
 
         self.parameters = parameters
 
-        self.mld_db = MlsDb()
+        self.mls_db = MlsDb()
         
         self.generateSignal()
 
@@ -62,17 +63,17 @@ class SignalGenerator(object):
         self.logger.debug("Entering generateSignal")
 
         # Get parameters
-        signal_type = self.parameters["signal type"]
+        signal_type = str(self.parameters["signal type"])
         
-        lpf_enabled = self.parameters["lpf enabled"]
-        lpf_cutoff = self.parameters["lpf cutoff"]
-        lpf_order = self.parameters["lpf order"]
-        hpf_enabled = self.parameters["hpf enabled"]
-        hpf_cutoff = self.parameters["hpf cutoff"]
-        hpf_order = self.parameters["hpf order"]
+        lpf_enabled = int(self.parameters["lpf enabled"])
+        lpf_cutoff = int(self.parameters["lpf cutoff"])
+        lpf_order = int(self.parameters["lpf order"])
+        hpf_enabled = int(self.parameters["hpf enabled"])
+        hpf_cutoff = int(self.parameters["hpf cutoff"])
+        hpf_order = int(self.parameters["hpf order"])
 
-        pad_signal = self.parameters["pad signal"]
-        signal_reps = self.parameters["signal reps"]
+        pad_signal = int(self.parameters["pad signal"])
+        signal_reps = int(self.parameters["signal reps"])
 
         # Generate the signal
         if signal_type == "swept sine":
@@ -115,10 +116,10 @@ class SignalGenerator(object):
         self.logger.debug("Entering generateSweptSine")
         
         # Get signal parameters
-        f_0 = self.parameters["lower frequency"]
-        f_1 = self.parameters["upper frequency"]
-        T = self.parameters["signal length"]
-        sample_rate = self.parameters["sample rate"]
+        f_0 = int(self.parameters["lower frequency"])
+        f_1 = int(self.parameters["upper frequency"])
+        T = float(self.parameters["signal length"])
+        sample_rate = float(self.parameters["sample rate"])
 
         # Generate time
         t = arange(0, signal_length, 1 / sample_rate)
@@ -174,11 +175,11 @@ class SignalGenerator(object):
         self.logger.debug("Entering generateModifiedSweptSine")
         
         # Get signal parameters
-        f_0 = self.parameters["lower frequency"]
-        f_1 = self.parameters["upper frequency"]
-        T = self.parameters["signal length"]
-        sample_rate = self.parameters["sample rate"]
-        fft_size = self.parameters["fft size"]
+        f_0 = int(self.parameters["lower frequency"])
+        f_1 = int(self.parameters["upper frequency"])
+        T = float(self.parameters["signal length"])
+        sample_rate = float(self.parameters["sample rate"])
+        fft_size = int(self.parameters["fft size"])
 
         # Generate time, assuming a sample rate of 2 * f_1
         t = arange(0, signal_length, 1 / (2 * f_1))
@@ -230,8 +231,8 @@ class SignalGenerator(object):
         self.logger.debug("Entering generateMls")
 
         # Get signal parameters
-        taps = self.parameters["mls taps"]
-        reps = self.parameters["mls reps"]
+        taps = int(self.parameters["mls taps"])
+        reps = int(self.parameters["mls reps"])
 
         mls = self.mls_db.getMls(taps)
 
@@ -264,7 +265,7 @@ class SignalGenerator(object):
         self.logger.debug("Entering filterSignal (%s, %s, %s)"%(cutoff, 
                                                                 order, type))
         # Get signal parameters
-        sample_rate = self.parameters["sample rate"]
+        sample_rate = float(self.parameters["sample rate"])
 
         [b, a] = butter(order, cutoff / (sample_rate / 2), btype=type)
 
@@ -277,12 +278,12 @@ class SignalGenerator(object):
         self.logger.debug("Entering padSignal")
 
         # Get signal parameters
-        impulse_delay = self.parameters["impulse delay"]
-        signal_padding = self.parameters["signal padding"]
-        sample_rate = self.parameters["sample rate"]
+        impulse_delay = float(self.parameters["impulse delay"])
+        signal_padding = float(self.parameters["signal padding"])
+        sample_rate = float(self.parameters["sample rate"])
 
-        impulse_delay_samples = zeros( int(impulse_delay * sample_rate) )
-        signal_padding_samples = zeros( int(signal_padding * sample_rate) )
+        impulse_delay_samples = zeros(int(impulse_delay * sample_rate))
+        signal_padding_samples = zeros(int(signal_padding * sample_rate))
 
         self.signal = r_[1, impulse_delay_samples, self.signal, 
                          signal_padding_samples]
