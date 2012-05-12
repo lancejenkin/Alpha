@@ -3,7 +3,7 @@
 
 AudioIO is a class that utilizes PortAudio, in order to make a platform
 independent audio interface.  It provides means to playback and record audio
-signals at the same time.  It also provides a class to retreive audio device
+signals at the same time.  It also provides a class to retrieve audio device
 information
 """
 

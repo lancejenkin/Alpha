@@ -2,7 +2,7 @@
 """ Provides methods for the Rapid Delegate Object.
 
 The rapid delegate is used for the rapid measurement of a material.  It loads
-the default settings to do the measurement, as well as to analyse the response.
+the default settings to do the measurement, as well as to analyze the response.
 """
 
 import logging
@@ -15,6 +15,7 @@ from RapidController import RapidController
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
 
+
 class RapidDelegate(BaseDelegate, QThread):
 
     def __init__(self):
@@ -23,10 +24,10 @@ class RapidDelegate(BaseDelegate, QThread):
         QThread.__init__(self)
         self.logger = logging.getLogger("Alpha")
         self.logger.debug("Creating RapidDelegate")
-        
-        self.window = RapidController(self.measurement_settings, 
+
+        self.window = RapidController(self.measurement_settings,
                                     self.audio_devices)
-        
+
         self._setupSignals()
 
     def _setupSignals(self):
@@ -40,8 +41,8 @@ class RapidDelegate(BaseDelegate, QThread):
     def _newMeasurement(self):
         """ Helper method to start a new measurement.
 
-        The base newMeasurement method requires measurement_settings, this 
-        helper method retrieves the measurement settings from the view, and 
+        The base newMeasurement method requires measurement_settings, this
+        helper method retrieves the measurement settings from the view, and
         passes it to the newMeasurement method.
         """
         self.logger.debug("Entering _newMeasurement")
@@ -57,9 +58,9 @@ class RapidDelegate(BaseDelegate, QThread):
         self.window._showSaveDialog("measurement")
 
     def _saveMeasurement(self, measurement_filename):
-        """ Saves a measurement that has been preformed to the specified 
+        """ Saves a measurement that has been preformed to the specified
             filename.
-        
+
         :param measurement_filename:
             The filename to save the measurement to.
         :type measurement_filename:
@@ -87,7 +88,7 @@ class RapidDelegate(BaseDelegate, QThread):
 
         measurement_filename = str(measurement_filename)
 
-        alpha = self.loadMeasurement(measurement_filename)
+        alpha = self.loadAbsorptionCoefficient(measurement_filename)
 
         self.window.alpha = alpha
 

@@ -17,6 +17,7 @@ from Grapher import Grapher
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
 
+
 class RapidController(QMainWindow, Ui_RapidAlphaWindow):
     # pyqtSignals
     startMeasurement = pyqtSignal()
@@ -31,11 +32,11 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
             the window.
 
             :param measurement_settings:
-                A dictionary containg the settings to used for the measurement.
+                A dictionary containing the settings to used for the measurement.
             :type measurement_settings:
                 dict
             :param audio_devices:
-                A list of all the input / output devices available in the 
+                A list of all the input / output devices available in the
                 system.
             :type:
                 array of AudioDevice
@@ -54,7 +55,7 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self._setupSignals()
 
         self.showMaximized()
-    
+
     def update(self):
         """ Updates the graph showing the absorption coefficient of the material
         measured.
@@ -66,7 +67,7 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
     def _setupWidgets(self):
         """ Setup the widgets to show the user.
 
-            For the rapid view, the input / output devices are populated, and 
+            For the rapid view, the input / output devices are populated, and
             the graph is formatted.
         """
         self.logger.debug("Entering _setupWidgets")
@@ -79,8 +80,8 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
                 self.InputDeviceList.addItem(name, index)
             if audio_device.output_channels > 0:
                 self.OutputDeviceList.addItem(name, index)
-        
-        # Set the selected input and output deivce
+
+        # Set the selected input and output device
         default_input_device = self.measurement_settings["input device"]
         default_output_device = self.measurement_settings["output device"]
 
@@ -100,7 +101,7 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
     def _updateMeasurementSettings(self):
         """ Update the Measurement Settings dictionary.
 
-        For the Rapid View, the only settings that change are the input and 
+        For the Rapid View, the only settings that change are the input and
         output devices.
         """
         self.logger.debug("Entering _updateMeasurementSettings")
@@ -112,7 +113,7 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         selected_index = self.OutputDeviceList.currentIndex()
         output_device = self.OutputDeviceList.itemData(selected_index).toInt()
         self.measurement_settings["output device"] = output_device[0]
-        
+
     def _setupSignals(self):
         """ Connects the various button signals to the class signals. """
         self.logger.debug("Entering _setupSignals")
@@ -121,27 +122,25 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self.Exit.clicked.connect(self.exit)
 
         save_func = self._showSaveDialog
-        self.SaveGraph.clicked.connect(lambda : save_func("graph"))
-        self.ExportData.clicked.connect(lambda : save_func("csv"))
-        self.SaveMeasurement.clicked.connect(lambda : save_func("measurement"))
+        self.SaveGraph.clicked.connect(lambda: save_func("graph"))
+        self.ExportData.clicked.connect(lambda: save_func("csv"))
+        self.SaveMeasurement.clicked.connect(lambda: save_func("measurement"))
 
         load_func = self._showOpenDialog
-        self.LoadMeasurement.clicked.connect(lambda : load_func("measurement"))
+        self.LoadMeasurement.clicked.connect(lambda: load_func("measurement"))
 
         update_func = self._updateMeasurementSettings
         self.OutputDeviceList.currentIndexChanged.connect(update_func)
         self.InputDeviceList.currentIndexChanged.connect(update_func)
 
-                                
-
     def _showOpenDialog(self, file_type):
         """ Shows the open dialog to get the filename to load the required data.
 
         :param file_type:
-            The type of data to be saved, could be one of "graph", "csv", 
+            The type of data to be saved, could be one of "graph", "csv",
             "measurement"
         :type file_type:
-            str 
+            str
         """
         self.logger.debug("Entering _showOpenDialog")
 
@@ -152,11 +151,11 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         else:
             self.logger.debug("Invalid file_type passed: %s" % (file_type))
             return
-        
+
         dir = "./"
 
         filename = QFileDialog.getOpenFileName(self, caption, dir, filter)
-        # filename is a tuple (filename, selectedfileter) when file is selected
+        # filename is a tuple (filename, selected filter) when file is selected
         # else a blank string if dialog closed
         print filename
         if filename != "":
@@ -167,10 +166,10 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
             data to.
 
         :param file_type:
-            The type of data to be saved, could be one of "graph", "csv", 
+            The type of data to be saved, could be one of "graph", "csv",
             "measurement"
         :type file_type:
-            str 
+            str
         """
         self.logger.debug("Entering _showSaveDialog")
 
@@ -189,9 +188,9 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         else:
             self.logger.debug("Invalid file_type passed: %s" % (file_type))
             return
-        
+
         dir = "./"
-                
+
         filename = QFileDialog.getSaveFileName(self, caption, dir, filter)
 
         if filename != "":

@@ -12,10 +12,11 @@ import zlib
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
 
+
 class MeasurementDb(object):
-    
+
     def __init__(self, filename):
-        """ Constructor for MeasurementDb obect.
+        """ Constructor for MeasurementDb object.
 
         :param filename:
             The filename where the measurement will be saved.
@@ -24,35 +25,33 @@ class MeasurementDb(object):
         """
         self.logger = logging.getLogger("Alpha")
         self.logger.debug("Creating MeasurementDb Object")
-        
+
         if os.path.exists(filename):
             new_db = False
         else:
             new_db = True
-        
+
         try:
             print filename
 
             self.conn = sqlite3.connect(filename)
         except sqlite3.OperationalError as error:
-            self.logger.error("Could not open %s: %s"%(filename, error))
-            raise Exception("Database Error: %s"%(error))
-        
+            self.logger.error("Could not open %s: %s" % (filename, error))
+            raise Exception("Database Error: %s" % (error))
+
         self.conn.row_factory = self._dict_factory
-        
+
         if new_db == True:
             self._setupDatabase()
 
-        
-    
     def __del__(self):
-        """ Deconstructor, ensures that the changes to the database have be 
-            commited.
+        """ Deconstructor, ensures that the changes to the database have be
+            committed.
         """
         self.logger.debug("Entering __del__")
 
         self.conn.commit()
-        
+
     def _setupDatabase(self):
         """ Setup signal database schema so that signals can be saved. """
         self.logger.debug("Entering _setupDatabase")
@@ -62,7 +61,7 @@ class MeasurementDb(object):
         cursor.execute("""CREATE TABLE "attributes" (
                         "key" TEXT PRIMARY KEY,
                         "value" TEXT)""")
-        
+
         cursor.execute("""CREATE TABLE "analysis" (
                         "key" TEXT PRIMARY KEY,
                         "value" TEXT)""")
@@ -72,15 +71,15 @@ class MeasurementDb(object):
                         "microphone" BLOB,
                         "generator" BLOB,
                         "enabled" INTEGER DEFAULT 1)""")
-        
+
         self.conn.commit()
         cursor.close()
-    
-    def saveMeasurementAttributes(self, attributes):
-        """ Save attributes associated with the measurment.
 
-        When saving a new signal, the attributes will contain the measurement 
-        settings used when creating the signal.  When analysing a signal it 
+    def saveMeasurementAttributes(self, attributes):
+        """ Save attributes associated with the measurement.
+
+        When saving a new signal, the attributes will contain the measurement
+        settings used when creating the signal.  When analyzing a signal it
         will contain the analysis settings.  It will also contain the location
         of the location of the start of the signal.
 
@@ -94,18 +93,18 @@ class MeasurementDb(object):
         cursor = self.conn.cursor()
 
         for key, value in attributes.items():
-            cursor.execute("""REPLACE INTO "attributes" ("key", "value") 
+            cursor.execute("""REPLACE INTO "attributes" ("key", "value")
                                 VALUES (?, ?)""", (key, value,))
-        
+
         self.conn.commit()
 
         cursor.close()
-    
+
     def saveAnalysisSettings(self, analysis_settings):
-        """ Saved the settings used to analyse the signals.
+        """ Saved the settings used to analyze the signals.
 
         :param settings:
-            A dictionary of settings used to analyse the signals.
+            A dictionary of settings used to analyze the signals.
         :type settings:
             dict
         """
@@ -113,16 +112,16 @@ class MeasurementDb(object):
 
         cursor = self.conn.cursor()
 
-        for key, value in attributes.items():
-            cursor.execute("""REPLACE INTO "analysis" ("key", "value") 
+        for key, value in analysis_settings.items():
+            cursor.execute("""REPLACE INTO "analysis" ("key", "value")
                                 VALUES (?, ?)""", (key, value,))
-        
+
         self.conn.commit()
 
         cursor.close()
-    
+
     def isAnalysed(self):
-        """ Determine if the signals have be analysed by counting the records
+        """ Determine if the signals have be analyzed by counting the records
             in the analysis table.
         """
         self.logger.debug("Entering isAnalysed")
@@ -134,7 +133,7 @@ class MeasurementDb(object):
         except sqlite3.OperationalError:
             cursor.close()
             return False
-        
+
         row = cursor.fetchone()
 
         if int(row["count"]) > 0:
@@ -146,11 +145,11 @@ class MeasurementDb(object):
         """ Save captured microphone and generator signals.
 
         :param microphone_signal:
-            The signal caputred by the microphone.
+            The signal captured by the microphone.
         :type microphone_signal:
             array of float
         :param generator_signal:
-            The signal cpatured by the sound card, representing what the sound
+            The signal captured by the sound card, representing what the sound
             card produces.
         :type generator_signal:
             array of float
@@ -168,9 +167,9 @@ class MeasurementDb(object):
         cursor.execute("INSERT INTO signal (microphone, generator) VALUES (?, ?)",
              (compressed_microphone, compressed_generator))
         self.conn.commit()
-        
+
         cursor.close()
-    
+
     def getMeasurementSettings(self):
         """ Get measurement settings used to measure the signals.
 
@@ -188,11 +187,11 @@ class MeasurementDb(object):
         measurement_settings = {}
         for row in results:
             measurement_settings[row["key"]] = row["value"]
-        
+
         cursor.close()
 
         return measurement_settings
-    
+
     def getAnalysisSettings(self):
         """ Get the analysis settings saved in the database, if any.
         """
@@ -207,7 +206,7 @@ class MeasurementDb(object):
         analysis_settings = {}
         for row in results:
             analysis_settings[row["key"]] = row["value"]
-        
+
         cursor.close()
 
         return analysis_settings
@@ -216,7 +215,7 @@ class MeasurementDb(object):
         """ Return all the signals in the database.
 
         :returns:
-            array - An array of dictionary containg the signals in the database
+            array - An array of dictionary containing the signals in the database
         """
         self.logger.debug("Entering getSignals")
 
@@ -230,25 +229,25 @@ class MeasurementDb(object):
         for row in results:
             signals["microphone"].append(pickle.loads(zlib.decompress(buffer(row["microphone"]))))
             signals["generator"].append(pickle.loads(zlib.decompress(buffer(row["generator"]))))
-            
-            # For compatibility with previous versions, need to ensure the 
+
+            # For compatibility with previous versions, need to ensure the
             # enabled column is in the table
             if "enabled" in row:
                 signals["enabled"].append(row["enabled"])
             else:
                 signals["enabled"].append(1)
-        
+
         cursor.close()
 
         return signals
-        
+
     @staticmethod
     def _dict_factory(cursor, row):
         """ Dictionary factory used for sqlite3 to return rows as dictionaries,
             with column names as keys.
         """
-        
+
         d = {}
-        for idx,col in enumerate(cursor.description):
+        for idx, col in enumerate(cursor.description):
             d[col[0]] = row[idx]
         return d

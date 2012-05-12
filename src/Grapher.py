@@ -28,7 +28,7 @@ class Grapher(object):
         """ Graph the Absorption Coefficient of the material under measurement.
 
         :param alpha:
-            The absorption coefficent for the material tested.
+            The absorption coefficient for the material tested.
         :type alpha:
             array
         :param plot_handler:
@@ -41,10 +41,7 @@ class Grapher(object):
         # Get Parameters
         fft_size = int(self.measurement_settings["fft size"])
         sample_rate = float(self.measurement_settings["sample rate"])
-        if "decimation factor" in self.measurement_settings:
-            decimate = float(self.measurement_settings["decimation factor"])
-            sample_rate = sample_rate / decimate
-
+        
         if len(alpha) > 0:
             freq = fftfreq(len(alpha), 1 / sample_rate)
             plot_handler.axes.semilogx(freq, alpha)
@@ -54,12 +51,13 @@ class Grapher(object):
             plot_handler.axes.semilogx(freq, data, lw=0)
 
         plot_handler.axes.set_xlim([100, 2100])
-        plot_handler.axes.set_xticks([100, 125, 160, 200, 250, 315, 400, 
+        plot_handler.axes.set_xticks([100, 125, 160, 200, 250, 315, 400,
                                      500, 630, 800, 1000, 1250, 1600, 2000])
-        plot_handler.axes.set_xticklabels([100, 125, 160, 200, 250, 315, 400, 
+        plot_handler.axes.set_xticklabels([100, 125, 160, 200, 250, 315, 400,
                                      500, 630, 800, 1000, 1250, 1600, 2000])
         plot_handler.axes.set_ylim([0, 1])
-        plot_handler.axes.set_yticks(arange(0,1.1,0.1))
+        plot_handler.axes.set_yticks(arange(0, 1.1, 0.1))
         plot_handler.axes.grid(color="grey", linestyle="--")
+        plot_handler.axes.set_xlabel("Frequency (Hz)")
+        plot_handler.axes.set_ylabel(r"Absorption Coefficient")
         plot_handler.draw()
-    

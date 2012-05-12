@@ -37,9 +37,9 @@ class Measurement(object):
         """ Start the actual measurement.
 
             Start a measurement, by getting the signal from the signal
-            generator, passing the signal to the sound card and recieving the
+            generator, passing the signal to the sound card and receiving the
             response. It then preforms the initial analysis on the signals, to
-            split up the long response into the seperate signals, and locate
+            split up the long response into the separate signals, and locate
             the start of the signal.
         """
         self.logger.debug("Entering startMeasurement")
@@ -58,7 +58,7 @@ class Measurement(object):
     def _initialAnalysis(self):
         """ Preform the initial analysis on the received response.
 
-        Split the received response into the seperate signals.  It then locates
+        Split the received response into the separate signals.  It then locates
         the start of the signals by locating the impulse.
         """
         self.logger.debug("Entering _initialAnalysis")
@@ -89,16 +89,15 @@ class Measurement(object):
 
         Finding the synchronization impulse in the microphone is complicated
         by; the relatively low SNR as compared to the generator response and
-        the distorting effects on the impulse that the loudspeaker, fibre glass
+        the distorting effects on the impulse that the loudspeaker, fiber glass
         plug and sound propagating in a tube has on the impulse.  Instead of
         using a simple threshold, instead the first N samples of the signal are
-        assumed not to have any signal in them and consit of only noise. The
+        assumed not to have any signal in them and consist of only noise. The
         maximum value is then taken as the peak noise level, and the impulse
         is determined to be in the sample that is T times the peak noise level.
         """
         self.logger.debug("Entering _locateSignalImpulse")
 
-        print self.measurement_settings
         noise_samples = int(self.measurement_settings["noise samples"])
         impulse_constant = float(self.measurement_settings["impulse constant"])
 
@@ -106,10 +105,15 @@ class Measurement(object):
         d_signal = r_[0, (signal[1:] - signal[:-1])]
 
         # Determine noise level
-        peak_noise_lvl = max(abs(d_signal[:noise_samples]))
-        
+        #d_noise = d_signal[abs(d_signal) > 0][:noise_samples]
+        d_noise = d_signal[abs(signal) > 0][:noise_samples]
+        max_noise = max(abs(d_noise))
+        std_noise = std(abs(d_noise))
+
+        threshold = max_noise + impulse_constant * std_noise
+
         for sample_index, sample in enumerate(d_signal):
-            if abs(sample) > peak_noise_lvl * impulse_constant:
+            if abs(sample) > threshold:
                 self.logger.debug("Impulse found at %s" % (sample_index))
                 return sample_index
 
@@ -121,9 +125,9 @@ class Measurement(object):
 
         Due to the high SNR of the generator signal, a simple threshold
         algorithm suffices to find the synchronization impulse in the generator
-        signal. It should be noted, preringing occurs due to the out of phase
-        response of the bandlimiting filters in the AD and DA parts of the
-        soundcard.  The ringing has a frequency of Fs / 2, and can be removed
+        signal. It should be noted, pre-ringing occurs due to the out of phase
+        response of the band-limiting filters in the AD and DA parts of the
+        sound-card.  The ringing has a frequency of Fs / 2, and can be removed
         by phase shifting the signal using the Hilbert transform.  This will
         help in locating the impulse.
 
@@ -139,13 +143,10 @@ class Measurement(object):
         self.logger.debug("Entering _locateGeneratorImpulse")
 
         threshold = float(self.measurement_settings["impulse threshold"])
-        # Get the envolope of the signal, removing the pre-ringing
-        signal = abs(hilbert(signal))
+        # Get the envelope of the signal, removing the pre-ringing
+        signal = abs(signal)
 
-        # Differentiate the signal
-        d_signal = r_[0, (signal[1:] - signal[:-1])]
-
-        for sample_index, sample in enumerate(d_signal):
+        for sample_index, sample in enumerate(signal):
             if sample > threshold:
                 self.logger.debug("Impulse found at %s" % (sample_index))
                 return sample_index

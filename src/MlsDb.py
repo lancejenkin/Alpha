@@ -64,11 +64,11 @@ class MlsDb(object):
         """
         self.logger.debug("Entering getSystemResponse")
         
-        if len(response) < 2 ** 14 - 1:
+        if len(response) < 2 ** number_taps - 1:
             self.logger.error("Reponse too short")
             return
             
-        response = response[:2 ** 14 - 1]
+        response = response[:2 ** number_taps - 1]
         cursor = self.conn.cursor()
         
         cursor.execute("""SELECT tag_r, tag_s FROM mls
@@ -415,10 +415,10 @@ if __name__=="__main__":
     
     mls_db = MlsDb()
 
-    mls_signal = mls_db.getMls(3)
+    mls_signal = mls_db.getMls(4)
     mls_signal = -2 * mls_signal + 1
 
     print mls_signal
 
-    response = mls_db.getSystemResponse(mls_signal, 3)
+    response = mls_db.getSystemResponse(mls_signal, 4)
     print response

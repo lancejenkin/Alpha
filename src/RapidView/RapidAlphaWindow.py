@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'RapidAlphaWindow.ui'
 #
-# Created: Mon Feb 13 14:11:48 2012
+# Created: Thu May 10 21:39:42 2012
 #      by: PyQt4 UI code generator 4.9
 #
 # WARNING! All changes made in this file will be lost!

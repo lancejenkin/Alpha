@@ -1,0 +1,1372 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"freq",
+				"freq_response"
+			],
+			[
+				"fre",
+				"frequency_response"
+			],
+			[
+				"ge",
+				"generator_signals"
+			],
+			[
+				"meas",
+				"measurment_settings"
+			],
+			[
+				"measu",
+				"measurment_settings"
+			],
+			[
+				"genera",
+				"generator_signals"
+			],
+			[
+				"signal",
+				"signals"
+			],
+			[
+				"tap",
+				"taper_length"
+			],
+			[
+				"sys",
+				"system_resposne"
+			],
+			[
+				"aver",
+				"average_generator_response"
+			],
+			[
+				"sig",
+				"signal"
+			],
+			[
+				"gen",
+				"generator_response"
+			],
+			[
+				"avera",
+				"average_generator_response"
+			],
+			[
+				"get",
+				"getSystemResponse"
+			],
+			[
+				"ml",
+				"mls_db"
+			],
+			[
+				"dete",
+				"determineFreqResp"
+			],
+			[
+				"lo",
+				"logger"
+			],
+			[
+				"logg",
+				"logger"
+			],
+			[
+				"filter",
+				"filter_type"
+			],
+			[
+				"curr",
+				"currentIndexChanged"
+			],
+			[
+				"fil",
+				"filterOptions"
+			],
+			[
+				"Fre",
+				"FrequencyResponseController"
+			],
+			[
+				"value",
+				"valueChanged"
+			],
+			[
+				"update",
+				"updateExctration"
+			],
+			[
+				"valu",
+				"valueChanged"
+			],
+			[
+				"lpf_",
+				"lpf_cutoff"
+			],
+			[
+				"freqL",
+				"freqLPF"
+			],
+			[
+				"cur",
+				"currentText"
+			],
+			[
+				"num",
+				"numBursts"
+			],
+			[
+				"num_",
+				"num_taps"
+			],
+			[
+				"signa",
+				"signal_length"
+			],
+			[
+				"selec",
+				"selected_index"
+			],
+			[
+				"out",
+				"outputDevices"
+			],
+			[
+				"sele",
+				"selected_index"
+			],
+			[
+				"window",
+				"window_length"
+			],
+			[
+				"hpf",
+				"hpf_enabled"
+			],
+			[
+				"defa",
+				"default_signal"
+			],
+			[
+				"inpu",
+				"inputDevices"
+			],
+			[
+				"au",
+				"audio_device"
+			],
+			[
+				"audio",
+				"audio_device"
+			],
+			[
+				"aud",
+				"audio_devices"
+			],
+			[
+				"mic",
+				"microphone_response"
+			],
+			[
+				"mi",
+				"microphone_response"
+			],
+			[
+				"hp",
+				"hpf_cutoff"
+			],
+			[
+				"mea",
+				"measurement_filename"
+			],
+			[
+				"re",
+				"request"
+			],
+			[
+				"deluge-",
+				"deluge-magnet-icon"
+			],
+			[
+				"mag",
+				"magnet_links"
+			],
+			[
+				"res",
+				"resonatorExample"
+			],
+			[
+				"win",
+				"windowAnalysis"
+			],
+			[
+				"low",
+				"lowpassSweptSineGeneration"
+			],
+			[
+				"in",
+				"index"
+			],
+			[
+				"measure",
+				"measurement_filename"
+			],
+			[
+				"mls",
+				"mls_signal"
+			],
+			[
+				"mls_",
+				"mls_length"
+			],
+			[
+				"rep",
+				"repeated_irs"
+			],
+			[
+				"gener",
+				"generateIRS"
+			],
+			[
+				"impulse_si",
+				"impulse_signal_samples"
+			],
+			[
+				"fig",
+				"figure"
+			],
+			[
+				"mis",
+				"misidentificationAnalysis"
+			],
+			[
+				"sign",
+				"signal_gen"
+			],
+			[
+				"sample",
+				"sample_rate"
+			],
+			[
+				"erfc",
+				"erfcinv"
+			],
+			[
+				"mic_",
+				"mic_noise"
+			],
+			[
+				"sy",
+				"synchronizeAnalysis"
+			],
+			[
+				"microphone",
+				"microphone_signals"
+			],
+			[
+				"same",
+				"sample_rate"
+			],
+			[
+				"micr",
+				"microphone_response"
+			],
+			[
+				"power",
+				"power_cepstrum"
+			],
+			[
+				"measurem",
+				"measurement"
+			],
+			[
+				"save",
+				"saveMeasurement"
+			],
+			[
+				"determin",
+				"determineAlpha"
+			],
+			[
+				"loa",
+				"_loadMeasurement"
+			],
+			[
+				"plot",
+				"plot_handler"
+			],
+			[
+				"de",
+				"decimation"
+			],
+			[
+				"abso",
+				"absorption_coefficent"
+			],
+			[
+				"dec",
+				"decimate"
+			],
+			[
+				"gra",
+				"graphAbsorption"
+			],
+			[
+				"measureme",
+				"measurement_settings"
+			],
+			[
+				"_show",
+				"_showOpenDialog"
+			],
+			[
+				"expor",
+				"exportData"
+			],
+			[
+				"file",
+				"file_type"
+			],
+			[
+				"__",
+				"__init__"
+			],
+			[
+				"_set",
+				"_setupWidgets"
+			],
+			[
+				"Rapid",
+				"RapidController"
+			],
+			[
+				"P",
+				"PyQt4"
+			],
+			[
+				"Rapi",
+				"RapidAlphaWindow"
+			],
+			[
+				"Ra",
+				"RapidAlpha"
+			],
+			[
+				"conf",
+				"config_settings"
+			],
+			[
+				"ab",
+				"AbsorptionCoefficient"
+			],
+			[
+				"geta",
+				"getAnalysisSettings"
+			],
+			[
+				"analys",
+				"analysis_settings"
+			],
+			[
+				"A",
+				"AbsorptionCoefficient"
+			],
+			[
+				"Meas",
+				"MeasurementDb"
+			],
+			[
+				"Measure",
+				"measurement"
+			],
+			[
+				"measur",
+				"measurement_filename"
+			],
+			[
+				"Signa",
+				"SignalDb"
+			],
+			[
+				"new",
+				"newMeasurement"
+			],
+			[
+				"con",
+				"config_db"
+			],
+			[
+				"Base",
+				"BaseDelegate"
+			],
+			[
+				"Bas",
+				"BaseDelegate"
+			],
+			[
+				"average_inpu",
+				"average_input_response"
+			],
+			[
+				"input",
+				"input_response"
+			],
+			[
+				"ML",
+				"MlsDb"
+			],
+			[
+				"input_sig",
+				"input_signal"
+			],
+			[
+				"decimatio",
+				"decimation_factor"
+			],
+			[
+				"impu",
+				"impulse_response"
+			],
+			[
+				"windo",
+				"window_type"
+			],
+			[
+				"ta",
+				"taper_samples"
+			],
+			[
+				"sam",
+				"taper_samples"
+			],
+			[
+				"taper",
+				"taper_samples"
+			],
+			[
+				"wind",
+				"window_type"
+			],
+			[
+				"ipu",
+				"input_signals"
+			],
+			[
+				"ana",
+				"analysis_settings"
+			],
+			[
+				"locat",
+				"locateGeneratorImpulse"
+			],
+			[
+				"locate",
+				"locateSignalImpulse"
+			],
+			[
+				"samp",
+				"sample_index"
+			],
+			[
+				"para",
+				"param"
+			],
+			[
+				"log",
+				"logger"
+			],
+			[
+				"setup",
+				"_setupAudio"
+			],
+			[
+				"outpu",
+				"output_device"
+			],
+			[
+				"Int",
+				"INTEGER"
+			],
+			[
+				"Con",
+				"ConfigDb"
+			],
+			[
+				"table",
+				"table"
+			],
+			[
+				"par",
+				"param"
+			],
+			[
+				"table_",
+				"table_name"
+			],
+			[
+				"Sign",
+				"SignalGenerator"
+			],
+			[
+				"impulse",
+				"impulse_delay"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/BaseDelegate.py",
+			"settings":
+			{
+				"buffer_size": 7902,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/FrequencyResponse.py",
+			"settings":
+			{
+				"buffer_size": 9301,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/FrequencyResponseController.py",
+			"settings":
+			{
+				"buffer_size": 14978,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/FrequencyResponseDelegate.py",
+			"settings":
+			{
+				"buffer_size": 3708,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/RapidDelegate.py",
+			"settings":
+			{
+				"buffer_size": 3404,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/MeasurementDb.py",
+			"settings":
+			{
+				"buffer_size": 7580,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/AnalysisDelegate.py",
+			"settings":
+			{
+				"buffer_size": 18516,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/Python/Python.sublime-build",
+	"command_palette":
+	{
+		"height": 247.0,
+		"selected_items":
+		[
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Snippet: ",
+				"Snippet: #!/usr/bin/env"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/lance/Programming/Python/Masters/src/Measurement.py",
+		"/Users/lance/Programming/Python/Masters/src/SignalGenerator.py",
+		"/Users/lance/Programming/Python/Masters/src/Grapher.py",
+		"/Users/lance/Programming/Python/Masters/src/AudioIO.py",
+		"/Users/lance/Programming/Python/Masters/src/AbsorptionCoefficient.py",
+		"/Users/lance/Programming/Python/Masters/src/AnalysisDelegate.py",
+		"/Users/lance/Programming/Python/Masters/src/RapidController.py",
+		"/Users/lance/Programming/Python/Masters/src/RapidView/FrequencyResponseDelegate.py",
+		"/Users/lance/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/lance/Programming/Python/Masters/resonantor.py",
+		"/Users/lance/Dropbox/Masters (1)/Programming/Python/uct.lancejenkin.absorptioncoefficient/src/Models/Grapher.py",
+		"/Users/lance/Dropbox/Masters (1)/Programming/Python/uct.lancejenkin.absorptioncoefficient/src/ViewControllers/AnalysisViewController.py",
+		"/Users/lance/Programming/Python/Masters/src/build_views",
+		"/Users/lance/Programming/Python/Masters/src/RapidDelegate.py",
+		"/Users/lance/Programming/Python/Masters/src/RapidController",
+		"/Users/lance/Programming/Python/Masters/src/SignalDb.py",
+		"/Users/lance/Dropbox/Masters (1)/Programming/Python/signalgenerator.py",
+		"/Users/lance/Library/Application Support/Sublime Text 2/Packages/Default/Base File.sublime-settings",
+		"/Users/lance/Library/Application Support/Sublime Text 2/Packages/Default/Global.sublime-settings",
+		"/Users/lance/Dropbox/Masters (1)/Programming/Python/uct.lancejenkin.absorptioncoefficient/src/Classes/AudioInterface.pyc",
+		"/Users/lance/Programming/Python/canitdremel.py",
+		"/Users/lance/Programming/Python/MLSInterface.py"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"loadMeas",
+			"localStorage",
+			"b, a",
+			"input",
+			"paData",
+			"__P",
+			"POINTER",
+			"	",
+			"\\t",
+			"subplot(211)\n	plot(impulse_response)\n	subplot(212)\n	semilogx(fftfreq(N, 1 / SAMPLE_RATE), 20 * log ( abs (fft(impulse_response, N))))\n	xlim([10, 10e3])\n	ylim([-5, 0])\n	show()"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"    "
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/BaseDelegate.py",
+					"settings":
+					{
+						"buffer_size": 7902,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5440,
+								5465
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1790.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/FrequencyResponse.py",
+					"settings":
+					{
+						"buffer_size": 9301,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5754,
+								5704
+							]
+						],
+						"settings":
+						{
+							"rulers":
+							[
+								80
+							],
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": true,
+							"word_wrap": false,
+							"wrap_width": 80
+						},
+						"translation.x": 0.0,
+						"translation.y": 1648.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/FrequencyResponseController.py",
+					"settings":
+					{
+						"buffer_size": 14978,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								885,
+								900
+							]
+						],
+						"settings":
+						{
+							"rulers":
+							[
+								80
+							],
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "src/FrequencyResponseDelegate.py",
+					"settings":
+					{
+						"buffer_size": 3708,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2683,
+								2683
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"rulers":
+							[
+								80
+							],
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 704.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "src/RapidDelegate.py",
+					"settings":
+					{
+						"buffer_size": 3404,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2974,
+								2455
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 947.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/MeasurementDb.py",
+					"settings":
+					{
+						"buffer_size": 7580,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								309,
+								309
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/AnalysisDelegate.py",
+					"settings":
+					{
+						"buffer_size": 18516,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7645,
+								7645
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 8,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2578.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 100.0
+	},
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 198.0,
+	"status_bar_visible": true
+}
