@@ -96,7 +96,7 @@ class FrequencyResponse(object):
         self.impulse_response = self.system_response[:window_length]
         self.impulse_response[-taper_length:] *= taper[-taper_length:]
 
-        self.frequency_resposne = fft(self.impulse_response, fft_size)
+        self.frequency_response = fft(self.impulse_response, fft_size)
 
     def _deconvoleSignals(self):
         """ Deconvolves the generator signal from the microphone signal,
@@ -138,6 +138,9 @@ class FrequencyResponse(object):
                     irs = r_[irs, sample]
                 else:
                     irs = r_[irs, -1 * sample]
+
+            assert (len(self.average_microphone_response) == len(irs))
+            assert (len(self.average_generator_response) == len(irs))
 
             self.microphone_response = ifft(fft(self.average_microphone_response) * fft(irs[-1::-1]))
             self.microphone_response = self.microphone_response[:2 ** number_taps - 1]
@@ -183,7 +186,7 @@ class FrequencyResponse(object):
         self.average_generator_response = average(self.generator_responses,
                                                     axis=0)
 
-        if signal_type == "maximum length sequence":
+        if signal_type.lower() == "maximum length sequence":
             mls_reps = int(self.measurement_settings["mls reps"])
             mls_taps = int(self.measurement_settings["mls taps"])
             assert(mls_reps > 0)
@@ -197,7 +200,7 @@ class FrequencyResponse(object):
                                                 mls_length * (mls_reps + 1))]
             mls_array = reshape(mls_sig, (mls_reps, -1))
             self.average_generator_response = average(mls_array, axis=0)
-        elif signal_type == "inverse repeat sequence":
+        elif signal_type.lower() == "inverse repeat sequence":
             mls_reps = int(self.measurement_settings["mls reps"])
             mls_taps = int(self.measurement_settings["mls taps"])
             assert(mls_reps > 0)

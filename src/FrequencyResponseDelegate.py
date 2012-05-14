@@ -82,7 +82,7 @@ class FrequencyResponseDelegate(BaseDelegate, QThread):
 
         self.window.freq_response = freq_response
 
-        #self.window.update()
+        self.window.updateGraphs()
 
     def _saveMeasurement(self, measurement_filename):
         """ Saves a measurement that has been preformed to the specified

@@ -53,8 +53,9 @@ class FrequencyResponseController(QMainWindow, Ui_FrequencyResponse):
         self.setupUi(self)
 
         self.measurement_settings = measurement_settings
-
         self.audio_devices = audio_devices
+
+        self.grapher = Grapher(self.measurement_settings)
 
         self._populateWidgets()
 
@@ -63,6 +64,18 @@ class FrequencyResponseController(QMainWindow, Ui_FrequencyResponse):
         self._updateWidgets()
 
         self.showMaximized()
+
+    def updateGraphs(self):
+        """ Function called to update the graphs, called when the measurement
+        is first loaded, also called when extraction options have been updated.
+
+        """
+        self.logger.debug("Entering updateGraphs")
+
+        self.grapher.graphImpulseResponse(self.freq_response.impulse_response,
+            self.impulsePlot)
+        self.grapher.graphFrequencyResponse(self.freq_response.frequency_response,
+            self.frequencyPlot)
 
     def _setupSignals(self):
         """ Connects various signals that will be emitted to the required
@@ -78,7 +91,7 @@ class FrequencyResponseController(QMainWindow, Ui_FrequencyResponse):
         self.outputDevices.currentIndexChanged["int"].connect(self._updateSettings)
         self.signalType.currentIndexChanged["int"].connect(self._updateSettings)
         self.filterType.currentIndexChanged["int"].connect(self._updateSettings)
-        
+
         self.signalType.currentIndexChanged["int"].connect(self._updateWidgets)
         self.filterType.currentIndexChanged["int"].connect(self._updateWidgets)
         # Signal Settings
@@ -104,6 +117,9 @@ class FrequencyResponseController(QMainWindow, Ui_FrequencyResponse):
 
         # Emit signal when new measurement button is pressed
         self.startButton.clicked.connect(self.startMeasurement)
+
+        load_func = self._showOpenDialog
+        self.actionOpen.triggered.connect(lambda: load_func("measurement"))
 
         # Emit a signal when the window settings have changed
         self.winLength.valueChanged["int"].connect(self.updateExctration)
@@ -382,5 +398,33 @@ class FrequencyResponseController(QMainWindow, Ui_FrequencyResponse):
 
         filename = QFileDialog.getSaveFileName(self, caption, dir, filter)
 
+        if filename != "":
+            signal.emit(filename)
+
+    def _showOpenDialog(self, file_type):
+        """ Shows the open dialog to get the filename to load the required data.
+
+        :param file_type:
+            The type of data to be saved, could be one of "graph", "csv",
+            "measurement"
+        :type file_type:
+            str
+        """
+        self.logger.debug("Entering _showOpenDialog")
+
+        if file_type == "measurement":
+            caption = "Select Measurement File to Load"
+            filter = "FrequencyResponse (*.fdb)"
+            signal = self.loadMeasurement
+        else:
+            self.logger.debug("Invalid file_type passed: %s" % (file_type))
+            return
+
+        dir = "./"
+
+        filename = QFileDialog.getOpenFileName(self, caption, dir, filter)
+        # filename is a tuple (filename, selected filter) when file is selected
+        # else a blank string if dialog closed
+        print filename
         if filename != "":
             signal.emit(filename)
