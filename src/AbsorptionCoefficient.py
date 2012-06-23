@@ -8,7 +8,7 @@
 """
 
 import logging
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, lfilter, deconvolve
 from numpy import *
 from pylab import *
 from MlsDb import MlsDb
@@ -73,7 +73,7 @@ class AbsorptionCoefficient(object):
         # If MLS signal, then utilize the circular convolution property
         signal_type = self.measurement_settings["signal type"]
 
-        if signal_type == "maximum length sequence":
+        if signal_type.lower() == "maximum length sequence":
             number_taps = int(self.measurement_settings["mls taps"])
 
             self.microphone_response = self.mls_db.getSystemResponse(
@@ -82,7 +82,9 @@ class AbsorptionCoefficient(object):
             self.generator_response = self.mls_db.getSystemResponse(
                                         self.average_generator_response, number_taps)
 
-        elif signal_type == "inverse repeat sequence":
+            self.system_response = self.microphone_response - self.generator_response
+
+        elif signal_type.lower() == "inverse repeat sequence":
             number_taps = int(self.measurement_settings["mls taps"])
             # TODO: Re-factor this out of absorption coefficient
             mls = self.mls_db.getMls(number_taps)
@@ -94,10 +96,12 @@ class AbsorptionCoefficient(object):
                 else:
                     irs = r_[irs, -1 * sample]
 
-            self.microphone_response = ifft(fft(self.average_microphone_response) * fft(irs[-1::-1]))
-            self.microphone_response = self.microphone_response[:2 ** number_taps - 1]
-            self.generator_response = ifft(fft(self.average_generator_response) * fft(irs[-1::-1]))
-            self.generator_response = self.generator_response[:2 ** number_taps - 1]
+            self.microphone_response = irfft(rfft(self.average_microphone_response) * rfft(irs[-1::-1]))
+            #self.microphone_response = self.microphone_response[:2 ** number_taps - 1]
+            self.generator_response = irfft(rfft(self.average_generator_response) * rfft(irs[-1::-1]))
+            #self.generator_response = self.generator_response[:2 ** number_taps - 1]
+
+            self.system_response = self.microphone_response - self.generator_response
 
         else:
             self.microphone_response = self.average_microphone_response
@@ -151,7 +155,7 @@ class AbsorptionCoefficient(object):
         self.average_generator_response = average(self.generator_responses,
                                                     axis=0)
 
-        if signal_type == "maximum length sequence":
+        if signal_type.lower() == "maximum length sequence":
             mls_reps = int(self.measurement_settings["mls reps"])
             mls_taps = int(self.measurement_settings["mls taps"])
             assert(mls_reps > 0)
@@ -165,7 +169,7 @@ class AbsorptionCoefficient(object):
                                                 mls_length * (mls_reps + 1))]
             mls_array = reshape(mls_sig, (mls_reps, -1))
             self.average_generator_response = average(mls_array, axis=0)
-        elif signal_type == "inverse repeat sequence":
+        elif signal_type.lower() == "inverse repeat sequence":
             mls_reps = int(self.measurement_settings["mls reps"])
             mls_taps = int(self.measurement_settings["mls taps"])
             assert(mls_reps > 0)
@@ -195,12 +199,12 @@ class AbsorptionCoefficient(object):
         # Get required variables
         sample_rate = float(self.measurement_settings["sample rate"])
         decimation_factor = float(self.analysis_settings["decimation factor"])
-        filter_cutoff = int(self.analysis_settings["antialiasing filter order"])
+        filter_order = int(self.analysis_settings["antialiasing filter order"])
 
         # Low pass filter the response to prevent aliasing
-        [b, a] = butter(filter_cutoff, 0.8 / decimation_factor, btype="low")
+        [b, a] = butter(filter_order, 0.8 * pi / decimation_factor, btype="low")
 
-        #self.microphone_response = filtfilt(b, a, self.microphone_response)
+        #self.microphone_response = lfilter(b, a, self.microphone_response)
         #self.generator_response = filtfilt(b, a, self.generator_response)
 
         # Down sample the responses
@@ -226,6 +230,7 @@ class AbsorptionCoefficient(object):
         sample_rate = float(self.measurement_settings["sample rate"])
 
         window_length = window_end - window_start
+        print window_end
         window_samples = window_length * sample_rate
         taper_samples = taper_length * sample_rate
 
@@ -243,7 +248,7 @@ class AbsorptionCoefficient(object):
         start = window_start * sample_rate
         end = start + len(self.window)
 
-        self.impulse_response = self.power_cepstrum[start:end]
+        self.impulse_response = self.power_cepstrum[start:end].copy()
         self.impulse_response *= self.window
 
     def _determineCepstrum(self):
@@ -265,3 +270,6 @@ class AbsorptionCoefficient(object):
         self.generator_cepstrum = cepstrum(self.generator_response)
 
         self.power_cepstrum = self.microphone_cepstrum - self.generator_cepstrum
+
+        #system_response = ifft(deconvolve(fft(self.microphone_response, fft_size), fft(self.generator_response, fft_size)))
+        #self.power_cepstrum = cepstrum(system_response)

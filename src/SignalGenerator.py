@@ -91,7 +91,7 @@ class SignalGenerator(object):
             self.filterSignal(hpf_cutoff, hpf_order, "high")
         # Adjust gain
         # TODO: Get gain from database
-        self.signal *= 0.8
+        self.signal *= 0.5
 
         # Pad the filter with impulse, and delay at the end
         if pad_signal == 1:

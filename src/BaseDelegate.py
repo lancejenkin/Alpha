@@ -172,10 +172,7 @@ class BaseDelegate(object):
         measurement_db = MeasurementDb(measurement_filename)
 
         # Get parameters from the measurement database
-        if measurement_db.isAnalysed():
-            analysis_settings = measurement_db.getAnalysisSettings()
-        else:
-            analysis_settings = self.analysis_settings
+        analysis_settings = measurement_db.getAnalysisSettings()
 
         measurement_settings = measurement_db.getMeasurementSettings()
 

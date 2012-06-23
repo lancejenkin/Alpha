@@ -9,7 +9,8 @@ All figures used in the write up are generated in the Analysis Delegate
 
 import logging
 from pylab import *
-from scipy.fftpack import hilbert
+from scipy.signal import butter, lfilter
+from scipy.fftpack import rfftfreq
 import tempfile
 
 
@@ -43,6 +44,57 @@ class AnalysisDelegate(BaseDelegate):
         plot(alpha.generator_cepstrum)
 
         show()
+
+    def loudspeakerFrequencyResponse(self):
+        """ Creates graphs for the frequency response curves
+        for the Phillips AD3714 loudspeaker driver.
+        """
+        self.logger.debug("Entering loudspeakerFrequencyResponse")
+
+        
+
+        def plot_frequency_response(frequency_response, name):
+                # Plot frequency response
+
+                fig = figure(figsize=(2*3.375, 3.375))
+                handler = Object()
+                handler.axes = fig.add_subplot(111)
+                handler.draw = draw
+                grapher.graphFrequencyResponse(frequency_response, handler)
+                handler.axes.set_xticklabels(["", "", "", 31.5, "", "", 63, "", "", 125,
+                    "", "", 250, "", "", 500, "", "", "1K", "", "", "2K", "", "",
+                    "4K", "", "", "8K", "", ""])
+                fig.subplots_adjust(bottom=0.15, top=0.98, right=0.98, left=0.1)
+                savefig("Analysis/Images/%s_frequency_response.eps" % (name,))
+
+        def plot_impulse_response(impulse_response, name):
+                # Plot the impulse response
+                fig = figure(figsize=(2 * 3.375, 3.375))
+                handler = Object()
+                handler.axes = fig.add_subplot(111)
+                handler.draw = draw
+                grapher.graphImpulseResponse(impulse_response, handler)
+                fig.subplots_adjust(bottom=0.15, top=0.98, right=0.98, left=0.1)
+                savefig("Analysis/Images/%s_impulse_response.eps" % (name))
+        name = "120602_loudspeaker_3"
+
+        measurement_filename = "../testdata/%s.fdb" % (name)
+        freq = self.loadFrequencyResponse(measurement_filename)
+        grapher = Grapher(freq.measurement_settings)
+        plot_frequency_response(freq.frequency_response, name)
+        plot_impulse_response(freq.impulse_response, name)
+
+        return
+
+        # Base case, no modifications
+        for i in range(1, 13):
+                name = "120514_loudspeaker_%s" % (i)
+                measurement_filename = "../testdata/%s.fdb" % (name)
+                freq = self.loadFrequencyResponse(measurement_filename)
+                grapher = Grapher(freq.measurement_settings)
+                plot_frequency_response(freq.frequency_response, name)
+                plot_impulse_response(freq.impulse_response, name)
+
 
     def analysisImpulseResponse(self):
         """ Record the impulse response from the loudspeaker. """
@@ -130,9 +182,10 @@ class AnalysisDelegate(BaseDelegate):
         impulse """
         self.logger.debug("Entering misidentificationAnalysis")
 
-        measurement_file = "../test data/120426_asphalt.db"
+        measurement_file = "/Users/lance/Programming/Python/Masters/testdata/120618_asphalt_14.db"
 
         alpha = self.loadAbsorptionCoefficient(measurement_file)
+        print alpha.measurement_settings
         grapher = Grapher(alpha.measurement_settings)
 
         fig = figure(figsize=(7, 5))
@@ -155,9 +208,10 @@ class AnalysisDelegate(BaseDelegate):
         fig = figure(figsize=(7, 5))
         ax = fig.add_subplot(111)
         resp = abs(fft(alpha.microphone_signals[0])) ** 2
-        ax.plot(alpha.generator_cepstrum)
-        ax.plot(alpha.microphone_cepstrum)
-        ax.plot(alpha.power_cepstrum)
+        t = arange(0, len(alpha.generator_cepstrum) / 44100.0, 1 / 44100.0)
+        ax.plot(t, alpha.generator_cepstrum)
+        ax.plot(t, alpha.microphone_cepstrum)
+        ax.plot(t, alpha.power_cepstrum)
         show()
         fig = figure(figsize=(7, 5))
         handler = Object()
@@ -165,9 +219,9 @@ class AnalysisDelegate(BaseDelegate):
         handler.draw = draw
         grapher.graphAbsorption(alpha.alpha, handler)
         show()
-
-        alpha.measurement_settings["microphone impulse location"] = mic_impulse_loc + 0
-        alpha.measurement_settings["generator impulse location"] = gen_impulse_loc - 2
+        return
+        alpha.measurement_settings["microphone impulse location"] = mic_impulse_loc - 100
+        alpha.measurement_settings["generator impulse location"] = gen_impulse_loc - 100
 
         alpha.determineAlpha()
         fig = figure(figsize=(7, 5))
@@ -364,30 +418,35 @@ class AnalysisDelegate(BaseDelegate):
     def lowpassSweptSineGeneration(self):
         """ Function to illustrate the steps taken to generate a low pass swept sine.
 
-        Instread of using the Signal Generator, preform the inverse filtering manually
+        Instead of using the Signal Generator, preform the inverse filtering manually
         so that the steps may be illustrated.
         """
         from scipy.signal import butter, lfilter, filtfilt
 
         self.logger.debug("Entering lowpassSweptSineGeneration")
 
-        T = 125 * 10 ** -3  # 100 ms
-        sample_rate = 14e3
-        f_1 = 6400
-        fft_size = 2 ** 10
+        T = 64 * 10e-3  # 125 ms
+        sample_rate = 44100.0
+        f_1 = sample_rate / 2.0
+        fft_size = 2 ** 18
 
         # Generate time vector
         t = arange(0, T, 1 / sample_rate)
-        print len(t)
+
         # Generate the signal from 0 to Nyquist frequency
         a = pi * f_1 / T
 
         s = sin(a * t ** 2)
 
         plot(1000 * t, s)
-        xlabel("time (ms)")
+        xlabel("Time (ms)")
         ylabel(r"$s(t)$")
-        show()
+        xlim(0, 125)
+        ylim(-1.1, 1.1)
+        subplots_adjust(left=0.15, right=0.97, top=0.97, bottom=0.10)
+        savefig("Analysis/Images/swept_sine.eps")
+        cla()
+
         # Determine the spectrum
         S = fft(s, fft_size)
         # Inverse of the magnitude spectrum
@@ -398,24 +457,45 @@ class AnalysisDelegate(BaseDelegate):
         plot(fftfreq(fft_size, 1 / sample_rate)[:fft_size / 2], liaS[:fft_size / 2])
         xlabel("Frequency (Hz)")
         ylabel(r"ln$| S(\omega) | ^ {-1}$")
-        show()
+        xlim(0, sample_rate / 2)
+        subplots_adjust(left=0.15, right=0.97, top=0.97, bottom=0.10)
+        savefig("Analysis/Images/inverse_log_spectrum.eps")
+        cla()
         # c, similiar to the cepstrum, is the inverse of the logarithmic inverse
         # magnitude spectrum
         c = ifft(log(iaS))
 
         # Window c to produce m
         m = r_[c[0], 2 * c[1:len(S) / 2 - 1], c[len(S) / 2], zeros(len(S) / 2)]
-
+        plot(m)
+        xlabel("samples")
+        ylabel(r"$m\left[n\right]$")
+        gca().get_yaxis().set_ticks([])
+        subplots_adjust(left=0.10, right=0.97, top=0.97, bottom=0.10)
+        ylim(-0.05, 0.05)
+        xlim(0, 1000)
+        savefig("Analysis/Images/minimum_phase.eps")
+        cla()
         # Determine the spectrum of the windowed 'cepstrum'
         M = fft(m, fft_size)
 
         # Determine the minimum phase inverse filter
         iSmp = exp(M)
+        plot(fftfreq(fft_size, 1 / sample_rate)[:fft_size / 2], iSmp[:fft_size / 2])
+        xlim(0, sample_rate / 2.0)
+        ylim(0.010, 0.030)
+        ylabel(r"$X_{mp}^{-1}\left[k\right]$")
+        xlabel("Frequency (Hz)")
+        subplots_adjust(left=0.10, right=0.97, top=0.97, bottom=0.10)
+        gca().get_yaxis().set_ticks([])
+        xlim(0, sample_rate / 2.0)
+        savefig("Analysis/Images/inverse_minimum_phase.eps")
+        cla()
 
         # Determine the minimum phase spectrum
         Smp = S * iSmp
 
-        # Determin the minimum phase signal
+        # Determine the minimum phase signal
         smp = ifft(Smp)
 
         # smp will have fft_size samples, which could be very long
@@ -423,12 +503,25 @@ class AnalysisDelegate(BaseDelegate):
         smp = smp[:len(t)]
 
          # Low pass filter the signal to the upper frequency
-        [b, a] = butter(8, f_1 / (sample_rate / 2), btype="low")
-        smp = filtfilt(b, a, smp)
+        [b, a] = butter(8, 0.9, btype="low")
+        smp = lfilter(b, a, smp)
 
+        SMP = abs(rfft(smp, 2 ** 14))
+        SMP -= max(SMP)
+        S = abs(rfft(s, 2 ** 14))
+        S -= max(S)
+        S += 13
+
+        plot(rfftfreq(len(SMP), 1 / sample_rate), SMP)
+        plot(rfftfreq(len(S), 1 / sample_rate), S)
+
+        title("SMP")
+        show()
         # Normalize so that the maximum value is 1
         smp /= max(abs(smp))
 
+        plot(smp)
+        show()
         signal = smp
 
     def windowAnalysis(self):
@@ -478,6 +571,415 @@ class AnalysisDelegate(BaseDelegate):
         semilogx(f, 1 - (H_gen(f)) ** 2)
         ylim([0, 1])
         show()
+    def misc_flatspectrum_plots(self):
+        """ Miscilanous plots for the flat spectrum paper """
+        self.logger.debug("Entering misc_flatspectrum_plots")
+
+        # Plot piston resistance and reactance functions
+        from scipy.special import j1, struve
+
+        x = arange(0, 15, 0.001)
+
+        r1 = lambda x: 1 - 2 * j1(x) / x
+        x1 = lambda x: 2 * struve(1, x) / x
+
+        plot(x, r1(x), label="$R_{1}\left(x)\\right)$")
+        plot(x, x1(x), linestyle="--", color="black", label="$X_{1}\left(x)\\right)$")
+
+        xlim([0, 13])
+        annotate("$R_{1}(x)$", xy=(10, r1(10)), xycoords="data", xytext=(10.5, r1(10.5) - 0.2),
+                    arrowprops=dict(arrowstyle="->"))
+        annotate("$X_{1}(x)$", xy=(5, x1(5)), xycoords="data", xytext=(6, x1(6) + 0.2),
+                    arrowprops=dict(arrowstyle="->"))
+        grid(True)
+        savefig("Analysis/Images/piston_impedance_functions.eps")
+
+        # Plot the piston resisance for a 100mm piston
+        cla()
+        a = 0.055
+        c = 340
+        p0 = 1.2250
+        f = arange(100, 10000, 0.01)
+        k = 2 * pi * f / c
+        Rr = p0 * c * pi * a ** 2 * r1(2 * k * a)
+
+        normalized_Rr = 10 * log10(Rr) - 10 * log10(Rr[-1])
+        semilogx(f, normalized_Rr)
+        ax = gca()
+        ax.set_xticks([16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125,
+            160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
+            4000, 5000, 6300, 8000, 1000, 12500])
+        ax.set_xticklabels([16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125,
+            160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
+            4000, 5000, 6300, 8000, 1000, 12500])
+        xlim(100, 5000)
+
+        for label in ax.get_xticklabels():
+            label.set_rotation('vertical')
+
+        grid(True)
+        subplots_adjust(left=0.15, right=0.97, top=0.97, bottom=0.15)
+        xlabel("Frequency Hz")
+        ylabel("dB re $R_{1}(2ka) = 1$")
+        savefig("Analysis/Images/piston_resistance_100mm.eps")
+
+    def wave_guide_propagation(self):
+        """ Plots some graphs that are related to the wave propagation
+        in wave-guides 
+        """
+        self.logger.debug("Entering wave_guide_propagation")
+
+        f_n = 1000
+        f = arange(0, 5000, 0.1)
+        c = 340
+        fig = figure()
+
+        ax = fig.gca()
+        ax.plot(f, c * sqrt(1 - (f_n / f) ** 2))
+        ax.set_xlim(0, 5000)
+        ax.axhline(y=c, linestyle="--")
+
+        ax.set_xticks([0, 1000, 2000, 3000, 4000, 5000])
+        ax.set_xticklabels([0, "$f_{n}$", "$2f_{n}$", "$3f_{n}$", "$4f_{n}$", "$5f_{n}$"])
+
+        ax.set_yticks([0, 340])
+        ax.set_yticklabels([0, "c"])
+
+        ax.set_xlabel("Frequency")
+        ax.set_ylabel("Velocity")
+
+        savefig("Analysis/Images/wave_velocity.eps")
+
+        c = 340.0
+        f = c / 2
+        p = 1
+        kn = 2 * pi * f / c
+        fs = 100000.0
+        t = arange(0, 0.1, 1 / fs)
+
+        fig = figure()
+        ax = fig.add_subplot(311)
+
+        sig = cos(kn * sqrt(c ** 2 * t ** 2 - p ** 2)) / (kn * sqrt(c ** 2 * t ** 2 - p ** 2))
+        sig[isnan(sig)] = 0
+
+        ax.plot(t, sig)
+        ax.set_xticks([0, p / c, 2 * p / c, 3 * p / c, 4 * p / c])
+        ax.set_xticklabels([0, "$p/c$", "$2p/c$", "$3p/c$", "$4p/c$"])
+        ax.set_xlim(0, 4 * p / c)
+
+        ax.set_yticks([])
+        ax.set_ylim(-0.5, 0.5)
+
+        ax.axhline(y=0)
+        ax.axvline(x=2 * p / c, linestyle="--")
+
+        plt.text(0.01, 0.2, "$\lambda_n=2p$", ha="center", family="sans-serif", size=14)
+
+        ax = fig.add_subplot(312)
+
+        f = c
+        kn = 2 * pi * f / c
+
+        sig = cos(kn * sqrt(c ** 2 * t ** 2 - p ** 2)) / (kn * sqrt(c ** 2 * t ** 2 - p ** 2))
+        sig[isnan(sig)] = 0
+
+        ax.plot(t, sig)
+        ax.set_xticks([0, p / c, 2 * p / c, 3 * p / c, 4 * p / c])
+        ax.set_xticklabels([0, "$p/c$", "$2p/c$", "$3p/c$", "$4p/c$"])
+        ax.set_xlim(0, 4 * p / c)
+
+        ax.set_yticks([])
+        ax.set_ylim(-0.5, 0.5)
+
+        ax.axhline(y=0)
+        ax.axvline(x=2 * p / c, linestyle="--")
+
+        plt.text(0.01, 0.2, "$\lambda_n=p$", ha="center", family="sans-serif", size=14)
+        ax.set_ylabel("Signal Amplitude")
+
+        ax = fig.add_subplot(313)
+
+        f = 2 * c
+        kn = 2 * pi * f / c
+
+        sig = cos(kn * sqrt(c ** 2 * t ** 2 - p ** 2)) / (kn * sqrt(c ** 2 * t ** 2 - p ** 2))
+        sig[isnan(sig)] = 0
+
+        ax.plot(t, sig)
+        ax.set_xticks([0, p / c, 2 * p / c, 3 * p / c, 4 * p / c])
+        ax.set_xticklabels([0, "$p/c$", "$2p/c$", "$3p/c$", "$4p/c$"])
+        ax.set_xlim(0, 4 * p / c)
+
+        ax.set_yticks([])
+        ax.set_ylim(-0.5, 0.5)
+
+        ax.axhline(y=0)
+        ax.axvline(x=2 * p / c, linestyle="--")
+        plt.text(0.01, 0.2, "$\lambda_n=0.5p$", ha="center", family="sans-serif", size=14)
+        ax.set_xlabel("Time")
+        
+        savefig("Analysis/Images/one_mode_impulse_response.eps")
+
+    def compare_results(self):
+        """ Function to compare the absorption coefficient using the cepstral
+        technique comparing to the impedance tube.
+        """
+        self.logger.debug("Entering compare_results")
+
+        measurement_filename = "../testdata/120519_asphalt_13.db"
+
+        alpha = self.loadAbsorptionCoefficient(measurement_filename)
+        grapher = Grapher(alpha.measurement_settings)
+        fig = figure()
+
+        handler = Object()
+        handler.axes = fig.add_subplot(111)
+        handler.draw = draw
+        grapher.graphAbsorption(alpha.alpha, handler)
+        
+        a = [0.032116172, 0.034017778, 0.032430265, 0.02675464, 0.192021209, 0.415370952,
+                0.372468791, 0.691662969, 0.54285943, 0.338953418, 0.284023669, 0.355485023,
+                0.475263874, 0.282777409, 0.595041322]
+        f = [100, 125, 160, 200, 250, 300, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000]
+        handler.axes.plot(f, a, "x")
+        show()
+
+    def windowEffects(self):
+        """ Function used to generate figures for the window function section. """
+        self.logger.debug("Entering windowEffects")
+        
+        # Declare system variables
+        fs = 44100.0
+        
+        c = 344.0
+        l = 2.0
+        mic_l = l / 2.0
+        N = 2 ** 18
+
+        [bl, al] = butter(1, 10000 / fs / 2.0, 'low')
+
+        T = 0.1
+        t = arange(0, T, 1 / fs)
+        s = r_[sin(2 * pi * t * (fs / 2 / (2 * T))), zeros(fs * (1 - T) + 1)]  # Impulse
+        s = r_[1, rand(fs)]
+
+        h = r_[1, zeros(fs)]  # perfect reflector
+        h = lfilter(bl, al, h)
+
+        y = r_[s, zeros(fs * (l + mic_l) / c)]
+        y += r_[zeros(fs * (l + mic_l) / c), ifft(fft(s) * fft(h))]
+
+        cepstrum = ifft(log(abs(fft(y, 2 ** 18)) ** 2))
+
+        t = arange(0, len(cepstrum) / fs, 1 / fs)
+        t *= 1000
+
+        plot(t, cepstrum)
+
+        win = r_[hanning(100)[:50], ones(400), hanning(100)[50:]]
+        win *= max(abs(cepstrum[100:500]))
+        t = arange(0, len(win) / fs, 1 / fs)
+        t += 0.0058
+        t *= 1000
+        plot(t, win, c="black", ls="--")
+        xlim(0, 25)
+        ylim(-0.1, 0.3)
+        grid(True)
+
+        xlabel("quenfrency (ms)")
+
+        savefig("Analysis/Images/lifting_the_impulse_response.eps")
+        cla()
+
+        t = arange(0, 1, 1 / fs)
+        x = cos(2 * pi * 1000 * t)
+        N = 2 ** 18
+        n = 1000
+
+        plot(rfftfreq(N / 2 + 1, 1 / fs), rfft(x[:n], N))
+        xlim(0, 2000)
+
+        ax = gca()
+
+        ax.set_xticks([1000])
+        ax.set_xticklabels(["$f_{0}$"])
+        ax.set_yticks([0])
+
+        grid(True)
+        axhline(y=0)
+        xlabel("Frequency (Hz)")
+        ylabel(r"$X\left(f\right)$")
+        savefig("Analysis/Images/windowed_sinusoidal_signal.eps")
+
+        cla()
+
+        n = 10
+
+        W = abs(fft(ones(n), N)) ** 2
+
+        plot(fftfreq(N), W)
+
+        enbw = 100
+        enbw_rect = r_[0, max(W) * ones(enbw), 0]
+
+        plot(linspace(-0.05, 0.05, enbw + 2), enbw_rect, c="black", ls="--")
+        ax = gca()
+
+        ax.set_xticks([0])
+        ax.set_yticks([0])
+        ax.set_yticklabels("")
+
+        xlabel("Frequency (Hz)")
+        ylabel(r"$\left|W\left(f\right)\right|^{2}$")
+
+        axvline(x=0)
+
+        ylim(0, 110)
+
+        annotate("peak power gain\n" + r"at $\left|W\left(0\right)\right|^{2}$", xy=(0.05, max(W)),
+                xytext=(0.15, max(W) - 2), arrowprops=dict(fc="black", width=1, headwidth=5),
+                verticalalignment='top', fontsize=10)
+        annotate("Equivalent\nNoise Bandwidth", xy=(-0.05, max(W) / 2), xytext=(-0.15, max(W) / 2),
+                arrowprops=dict(fc="black", width=1, headwidth=5), horizontalalignment="right",
+                verticalalignment="center", fontsize=10)
+        annotate("", xy=(0.05, max(W) / 2), xytext=(0.15, max(W) / 2),
+                arrowprops=dict(fc="black", width=1, headwidth=5), horizontalalignment="right",
+                fontsize=10)
+
+        savefig("Analysis/Images/equivalent_noise_bandwidth.eps")
+
+        cla()
+
+        tukey = lambda N, a: r_[hanning(a * N)[:a * N / 2.0], ones(N * (1 - a)), hanning(a * N)[a * N / 2.0:]]
+
+        N = 220
+
+        plot(ones(N)[N / 2:], c="black", ls="-", label="Rectangle")
+        #plot([0, 0], [0, 1], c="black", ls="-")
+        plot([N / 2, N / 2], [0, 1], c="black", ls="-")
+
+        plot(tukey(N, 0.25)[N / 2:], c="black", ls="--", label=r"Tukey $\alpha = 0.25$")
+        plot(tukey(N, 0.55)[N / 2:], c="black", ls="-.", label=r"Tukey $\alpha = 0.50$")
+        plot(tukey(N, 0.75)[N / 2:], c="black", ls=":", label=r"Tukey $\alpha = 0.75$")
+        plot(hanning(N)[N / 2:], c="gray", label="Hanning")
+
+        legend()
+        leg = gca().get_legend()
+        setp(leg.get_texts(), fontsize="small")
+
+        xlim(0, N + 10)
+        ylim(0, 1.05)
+
+        ax = gca()
+        ax.set_xticks([N / 2])
+        ax.set_xticklabels([r"N/2"])
+
+        savefig("Analysis/Images/window_shapes.eps")
+
+        cla()
+
+        # n = 100
+        # N = 2 ** 18
+
+        # R = 20 * log10(rfft(ones(n), N))
+        # R -= max(R)
+
+        # T25 = 20 * log10(rfft(tukey(n, 0.25), N))
+        # T25 -= max(T25)
+
+        # T50 = 20 * log10(rfft(tukey(n, 0.50), N))
+        # T50 -= max(T50)
+
+        # T75 = 20 * log10(rfft(tukey(n, 0.75), N))
+        # T75 -= max(T75)
+
+        # H = 20 * log10(rfft(hanning(n), N))
+        # H -= max(H)
+
+        # semilogx(rfftfreq(N / 2 + 1) * n, R, label="Rectangle", c="black", ls="-")
+        # semilogx(rfftfreq(N / 2 + 1) * n, T25, label=r"Tukey $\alpha = 0.25$", c="black", ls="--")
+        # semilogx(rfftfreq(N / 2 + 1) * n, T50, label=r"Tukey $\alpha = 0.50$", c="black", ls="-.")
+        # semilogx(rfftfreq(N / 2 + 1) * n, T75, label=r"Tukey $\alpha = 0.75$", c="black", ls=":")
+        # semilogx(rfftfreq(N / 2 + 1) * n, H, label="Hanning", c="gray", ls="-")
+
+        # xlim(0.1, 15)
+        # ylim(-60, 0)
+
+        # legend(loc="lower left")
+        # leg = gca().get_legend()
+        # setp(leg.get_texts(), fontsize="small")
+        # show()
+
+        cla()
+
+        n = 220
+        N = 2 ** 18
+
+        fig, (ax1, ax2, ax3, ax4) = subplots(4, 1, sharex=True, sharey=True)
+        ax1.semilogx(rfftfreq(N / 2 + 1, 1 / fs), rfft(ones(n), N), label="rect")
+        ax1.text(800, 50, "Rectangle Window", horizontalalignment="center", verticalalignment="center")
+        ax1.grid(True)
+
+        ax2.semilogx(rfftfreq(N / 2 + 1, 1 / fs), rfft(tukey(n, 0.25), N), label="a = 0.25")
+        ax2.text(800, 50, r"Tukey Window, $\alpha = 0.25$", horizontalalignment="center", verticalalignment="center")
+        ax2.grid(True)
+
+        ax3.semilogx(rfftfreq(N / 2 + 1, 1 / fs), rfft(tukey(n, 0.50), N), label="a = 0.50")
+        ax3.text(800, 50, r"Tukey Window, $\alpha = 0.50$", horizontalalignment="center", verticalalignment="center")
+        ax3.grid(True)
+
+        ax4.semilogx(rfftfreq(N / 2 + 1, 1 / fs), rfft(tukey(n, 0.75), N), label="a = 0.75")
+        ax4.text(800, 50, r"Tukey Window, $\alpha = 0.75$", horizontalalignment="center", verticalalignment="center")
+        ax4.grid(True)
+
+        axes = gca()
+
+        axes.set_xticks([100, 125, 160, 200, 250, 315, 400,
+                        500, 630, 800, 1000, 1250, 1600, 2000,
+                        2500, 3150, 4000, 5000])
+        axes.set_xticklabels([100, 125, 160, 200, 250, 315, 400,
+                        500, 630, 800, 1000, 1250, 1600, 2000,
+                        2500, 3150, 4000, 5000], rotation="vertical")
+        axes.set_yticks([0])
+        axes.set_yticklabels([0])
+
+        ylim(-100, 100)
+        xlim(100, 5000)
+
+        fig.subplots_adjust(bottom=0.15, top=0.98, right=0.98, left=0.05)
+        xlabel("Frequency (Hz)")
+
+        savefig("Analysis/Images/window_frequency_response.eps")
+
+    def mlsExciationSignal(self):
+        """ function to create graphs to illustrate generating mls signals """
+        self.logger.debug("entering mlsExciationSignal")
+
+        # get the mls signal
+        mls_db = MlsDb()
+
+        mls = mls_db.getMls(5)
+
+        # convert into -1's and 1s
+        mls = -2 * mls + 1
+
+        # hold values to produce plots
+        mls_plot = reduce(lambda x, y: x + y, zip(mls, mls))
+        bins_plot = reduce(lambda x, y: x + y, zip(arange(len(mls)), arange(1, len(mls) + 1)))
+
+        plot(bins_plot, mls_plot)
+        ylim(-1.1, 1.1)
+        yticks([-1, 0, 1])
+        xlabel("Bins")
+        ylabel("Amplitude")
+        axhline(y=-1, ls="--", color="gray")
+        axhline(y=0, ls="--", color="gray")
+        axhline(y=1, ls="--", color="gray")
+        subplots_adjust(left=0.10, right=0.97, top=0.97, bottom=0.10)
+        xlim(0, 31)
+        
+        savefig("Analysis/Images/5_tap_mls_signal.eps")
 class Object(object):
     pass
 
@@ -489,5 +991,5 @@ if __name__ == "__main__":
     logger.addHandler(ch)
 
     analysis = AnalysisDelegate()
-    analysis.misidentificationAnalysis()
+    analysis.mlsExciationSignal()
     #analysis.synchronizeAnalysis()

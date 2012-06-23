@@ -199,7 +199,7 @@ class MeasurementDb(object):
 
         cursor = self.conn.cursor()
 
-        cursor.execute("SELECT * FROM analysis")
+        cursor.execute("SELECT * FROM attributes")
 
         results = cursor.fetchall()
 
