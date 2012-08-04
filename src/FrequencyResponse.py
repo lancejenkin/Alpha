@@ -93,7 +93,7 @@ class FrequencyResponse(object):
 
         taper = hanning(2 * taper_length)
 
-        self.impulse_response = self.system_response[:window_length]
+        self.impulse_response = self.microphone_response[:window_length]
         self.impulse_response[-taper_length:] *= taper[-taper_length:]
 
         self.frequency_response = fft(self.impulse_response, fft_size)
@@ -104,10 +104,10 @@ class FrequencyResponse(object):
         """
         self.logger.debug("Entering _deconvoleSignals")
 
-        self.system_response = deconvolve(self.microphone_response,
-            self.generator_response)
+        self.system_response = deconvolve(self.microphone_response,self.generator_response)
         # deconvolve function returns a tuple (remainder, deconvolved signal)
-        self.system_response = self.system_response[1]
+        self.system_response = ifft(fft(self.microphone_response) / fft(self.generator_response))
+
 
     def _determineSystemResponse(self):
         """ Determines the system response of both the microphone and generator
@@ -122,10 +122,8 @@ class FrequencyResponse(object):
         if signal_type.lower() == "maximum length sequence":
             number_taps = int(self.measurement_settings["mls taps"])
 
-            self.microphone_response = self.mls_db.getSystemResponse(
-                self.average_microphone_response, number_taps)
-            self.generator_response = self.mls_db.getSystemResponse(
-                self.average_generator_responsem, number_taps)
+            self.microphone_response = self.mls_db.getSystemResponse(self.average_microphone_response, number_taps)
+            self.generator_response = self.mls_db.getSystemResponse(self.average_generator_response, number_taps)
         elif signal_type.lower() == "inverse repeat sequence":
             number_taps = int(self.measurement_settings["mls taps"])
 
@@ -167,8 +165,8 @@ class FrequencyResponse(object):
         impulse_signal_delay = float(self.measurement_settings["impulse delay"])
 
         impulse_signal_samples = impulse_signal_delay * sample_rate
-        """ Since the impulse is also a sample, we need to add one before the actual
-        start of the signal. """
+        # Since the impulse is also a sample, we need to add one before the actual
+        # start of the signal.
 
         signal_start = impulse_location + impulse_signal_samples
 
@@ -192,12 +190,10 @@ class FrequencyResponse(object):
             assert(mls_reps > 0)
 
             mls_length = 2 ** mls_taps - 1
-            mls_sig = self.average_microphone_response[mls_length:(
-                                                mls_length * (mls_reps + 1))]
+            mls_sig = self.average_microphone_response[mls_length:(mls_length * (mls_reps + 1))]
             mls_array = reshape(mls_sig, (mls_reps, -1))
             self.average_microphone_response = average(mls_array, axis=0)
-            mls_sig = self.average_generator_response[mls_length:(
-                                                mls_length * (mls_reps + 1))]
+            mls_sig = self.average_generator_response[mls_length:(mls_length * (mls_reps + 1))]
             mls_array = reshape(mls_sig, (mls_reps, -1))
             self.average_generator_response = average(mls_array, axis=0)
         elif signal_type.lower() == "inverse repeat sequence":
@@ -208,12 +204,10 @@ class FrequencyResponse(object):
             mls_length = 2 ** mls_taps - 1
             irs_length = 2 * mls_length
 
-            irs_sig = self.average_microphone_response[irs_length:(
-                                                irs_length * (mls_reps + 1))]
+            irs_sig = self.average_microphone_response[irs_length:(irs_length * (mls_reps + 1))]
             irs_array = reshape(irs_sig, (mls_reps, -1))
             self.average_microphone_response = average(irs_array, axis=0)
-            irs_sig = self.average_generator_response[irs_length:(
-                                                irs_length * (mls_reps + 1))]
+            irs_sig = self.average_generator_response[irs_length:(irs_length * (mls_reps + 1))]
             irs_array = reshape(irs_sig, (mls_reps, -1))
             self.average_generator_response = average(irs_array, axis=0)
 

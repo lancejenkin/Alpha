@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'LabView.ui'
 #
-# Created: Sat May 12 15:04:41 2012
+# Created: Fri Jul  6 15:00:55 2012
 #      by: PyQt4 UI code generator 4.9
 #
 # WARNING! All changes made in this file will be lost!

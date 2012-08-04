@@ -11,6 +11,7 @@ import logging
 from pylab import *
 from scipy.signal import butter, lfilter
 from scipy.fftpack import rfftfreq
+from SignalGenerator import SignalGenerator
 import tempfile
 
 
@@ -182,7 +183,7 @@ class AnalysisDelegate(BaseDelegate):
         impulse """
         self.logger.debug("Entering misidentificationAnalysis")
 
-        measurement_file = "/Users/lance/Programming/Python/Masters/testdata/120618_asphalt_14.db"
+        measurement_file = "/Users/lance/Programming/Python/Masters/testdata/120716_asphalt_irs_9.db"
 
         alpha = self.loadAbsorptionCoefficient(measurement_file)
         print alpha.measurement_settings
@@ -215,13 +216,14 @@ class AnalysisDelegate(BaseDelegate):
         show()
         fig = figure(figsize=(7, 5))
         handler = Object()
+        handler.figure = fig
         handler.axes = fig.add_subplot(111)
         handler.draw = draw
         grapher.graphAbsorption(alpha.alpha, handler)
         show()
-        return
-        alpha.measurement_settings["microphone impulse location"] = mic_impulse_loc - 100
-        alpha.measurement_settings["generator impulse location"] = gen_impulse_loc - 100
+
+        alpha.measurement_settings["microphone impulse location"] = mic_impulse_loc
+        alpha.measurement_settings["generator impulse location"] = gen_impulse_loc + 3
 
         alpha.determineAlpha()
         fig = figure(figsize=(7, 5))
@@ -231,6 +233,7 @@ class AnalysisDelegate(BaseDelegate):
         show()
         fig = figure(figsize=(7, 5))
         handler = Object()
+        handler.figure = fig
         handler.axes = fig.add_subplot(111)
         handler.draw = draw
         grapher.graphAbsorption(alpha.alpha, handler)
@@ -980,6 +983,18 @@ class AnalysisDelegate(BaseDelegate):
         xlim(0, 31)
         
         savefig("Analysis/Images/5_tap_mls_signal.eps")
+
+    def burstsVersusRepetitions(self):
+        """ Illustration of number of bursts of an MLS signal versus the number of repetitions.
+        """
+        self.logger.debug("Entering burstsVersusRepetitions")
+        self.measurement_settings["signal reps"] = 2
+        signal_gen = SignalGenerator(self.measurement_settings)
+
+        plot(signal_gen.signal)
+        xlim(0, 500e3)
+        show()
+
 class Object(object):
     pass
 
@@ -991,5 +1006,5 @@ if __name__ == "__main__":
     logger.addHandler(ch)
 
     analysis = AnalysisDelegate()
-    analysis.mlsExciationSignal()
+    analysis.misidentificationAnalysis()
     #analysis.synchronizeAnalysis()

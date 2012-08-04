@@ -8,7 +8,7 @@
 """
 
 import logging
-from scipy.signal import butter, lfilter, deconvolve
+from scipy.signal import butter, lfilter, deconvolve, cheby1, filtfilt, decimate
 from numpy import *
 from pylab import *
 from MlsDb import MlsDb
@@ -76,13 +76,11 @@ class AbsorptionCoefficient(object):
         if signal_type.lower() == "maximum length sequence":
             number_taps = int(self.measurement_settings["mls taps"])
 
-            self.microphone_response = self.mls_db.getSystemResponse(
-                                        self.average_microphone_response, number_taps)
+            self.microphone_response = self.mls_db.getSystemResponse(self.average_microphone_response, number_taps)
 
-            self.generator_response = self.mls_db.getSystemResponse(
-                                        self.average_generator_response, number_taps)
+            self.generator_response = self.mls_db.getSystemResponse(self.average_generator_response, number_taps)
 
-            self.system_response = self.microphone_response - self.generator_response
+            self.system_response = ifft(fft(self.microphone_response) / fft(self.generator_response))
 
         elif signal_type.lower() == "inverse repeat sequence":
             number_taps = int(self.measurement_settings["mls taps"])
@@ -96,12 +94,34 @@ class AbsorptionCoefficient(object):
                 else:
                     irs = r_[irs, -1 * sample]
 
-            self.microphone_response = irfft(rfft(self.average_microphone_response) * rfft(irs[-1::-1]))
-            #self.microphone_response = self.microphone_response[:2 ** number_taps - 1]
-            self.generator_response = irfft(rfft(self.average_generator_response) * rfft(irs[-1::-1]))
-            #self.generator_response = self.generator_response[:2 ** number_taps - 1]
 
-            self.system_response = self.microphone_response - self.generator_response
+            self.microphone_response = irfft(rfft(self.average_microphone_response) * rfft(irs[-1::-1]))
+            self.generator_response = irfft(rfft(self.average_generator_response) * rfft(irs[-1::-1]))
+
+            # The output of the auto-correlation of an irs signal is a + impulse at 0 and a
+            # - impulse at N / 2.  One is only interested in the positive impulse, so extract
+            # up to N / 2 samples, or the MLS length of 2 ^ (number of taps) - 1.  BUT, since
+            # the DFT is circular, samples at the end wrap to be connected to sample's at the
+            # start - if the start of the IRS signal is missed, then part of the - impulse
+            # response will corrupt the positive impulse response.
+
+            impulse_length = 2 ** number_taps - 1
+            window = hanning(0.1 * impulse_length)
+
+            self.microphone_response = self.microphone_response[:0.9 * impulse_length]
+            self.microphone_response[-len(window) / 2 :] *= window[-len(window) / 2 :]
+            tmp_response = self.microphone_response[0.1 * impulse_length:]
+            tmp_response[:len(window) / 2] *= window[:len(window) / 2]
+            append(self.microphone_response, tmp_response)
+
+            self.generator_response = self.generator_response[:impulse_length]
+            self.generator_response = self.generator_response[:0.9 * impulse_length]
+            self.generator_response[-len(window) / 2 :] *= window[-len(window) / 2 :]
+            tmp_response = self.generator_response[0.1 * impulse_length:]
+            tmp_response[:len(window) / 2] *= window[:len(window) / 2]
+            append(self.generator_response, tmp_response)
+
+            self.system_response = ifft(fft(self.microphone_response) / fft(self.generator_response))
 
         else:
             self.microphone_response = self.average_microphone_response
@@ -109,6 +129,7 @@ class AbsorptionCoefficient(object):
 
         # LPF the signals and decimate
         self._downsampleSignals()
+
         # Determine the Cepstrum
         self._determineCepstrum()
 
@@ -136,24 +157,26 @@ class AbsorptionCoefficient(object):
         impulse_signal_delay = float(self.measurement_settings["impulse delay"])
 
         impulse_signal_samples = impulse_signal_delay * sample_rate
-        """ Since the impulse is also a sample, we need to add one before the actual
-        start of the signal. """
 
         signal_start = impulse_location + impulse_signal_samples
 
         self.microphone_responses = []
-        for signal in self.microphone_signals:
-            self.microphone_responses.append(signal[signal_start:])
+        for signal_index, signal in enumerate(self.microphone_signals):
+            # Ignore first signal, unless there is only one signal
+            if signal_index > 0 or len(self.microphone_signals) == 1:
+                self.microphone_responses.append(signal[signal_start:])
         self.average_microphone_response = average(self.microphone_responses, axis=0)
 
         impulse_location = int(self.measurement_settings["generator impulse location"])
         signal_start = impulse_location + impulse_signal_samples
 
         self.generator_responses = []
-        for signal in self.generator_signals:
-            self.generator_responses.append(array(signal[signal_start:]))
-        self.average_generator_response = average(self.generator_responses,
-                                                    axis=0)
+        for signal_index, signal in enumerate(self.generator_signals):
+            # Ignore first signal, unless there is only one signal
+            if signal_index > 0 or len(self.generator_signals) == 1:
+                self.generator_responses.append(array(signal[signal_start:]))
+
+        self.average_generator_response = average(self.generator_responses,axis=0)
 
         if signal_type.lower() == "maximum length sequence":
             mls_reps = int(self.measurement_settings["mls reps"])
@@ -161,29 +184,28 @@ class AbsorptionCoefficient(object):
             assert(mls_reps > 0)
 
             mls_length = 2 ** mls_taps - 1
-            mls_sig = self.average_microphone_response[mls_length:(
-                                                mls_length * (mls_reps + 1))]
-            mls_array = reshape(mls_sig, (mls_reps, -1))
+            mls_sig = self.average_microphone_response[mls_length:(mls_length * (mls_reps))]
+            mls_array = reshape(mls_sig, (mls_reps - 1, -1))
             self.average_microphone_response = average(mls_array, axis=0)
-            mls_sig = self.average_generator_response[mls_length:(
-                                                mls_length * (mls_reps + 1))]
-            mls_array = reshape(mls_sig, (mls_reps, -1))
+
+            mls_sig = self.average_generator_response[mls_length:(mls_length * (mls_reps))]
+            mls_array = reshape(mls_sig, (mls_reps - 1, -1))
             self.average_generator_response = average(mls_array, axis=0)
+
         elif signal_type.lower() == "inverse repeat sequence":
             mls_reps = int(self.measurement_settings["mls reps"])
             mls_taps = int(self.measurement_settings["mls taps"])
-            assert(mls_reps > 0)
+            assert(mls_reps > 1)
 
             mls_length = 2 ** mls_taps - 1
             irs_length = 2 * mls_length
 
-            irs_sig = self.average_microphone_response[irs_length:(
-                                                irs_length * (mls_reps + 1))]
-            irs_array = reshape(irs_sig, (mls_reps, -1))
+            irs_sig = self.average_microphone_response[irs_length:(irs_length * (mls_reps))]
+            irs_array = reshape(irs_sig, (mls_reps - 1, -1))
             self.average_microphone_response = average(irs_array, axis=0)
-            irs_sig = self.average_generator_response[irs_length:(
-                                                irs_length * (mls_reps + 1))]
-            irs_array = reshape(irs_sig, (mls_reps, -1))
+
+            irs_sig = self.average_generator_response[irs_length:(irs_length * (mls_reps))]
+            irs_array = reshape(irs_sig, (mls_reps - 1, -1))
             self.average_generator_response = average(irs_array, axis=0)
 
     def _downsampleSignals(self):
@@ -198,21 +220,19 @@ class AbsorptionCoefficient(object):
 
         # Get required variables
         sample_rate = float(self.measurement_settings["sample rate"])
-        decimation_factor = float(self.analysis_settings["decimation factor"])
+        decimation_factor = int(self.analysis_settings["decimation factor"])
         filter_order = int(self.analysis_settings["antialiasing filter order"])
 
         # Low pass filter the response to prevent aliasing
-        [b, a] = butter(filter_order, 0.8 * pi / decimation_factor, btype="low")
+        [b, a] = butter(filter_order, 0.8 / decimation_factor , btype="low")
 
-        #self.microphone_response = lfilter(b, a, self.microphone_response)
-        #self.generator_response = filtfilt(b, a, self.generator_response)
 
         # Down sample the responses
-        self.microphone_response_ds = lfilter(b, a, self.microphone_response[::decimation_factor])
-        self.generator_response_ds = lfilter(b, a, self.generator_response[::decimation_factor])
-
-        self.microphone_response_ds = self.microphone_response
-        self.generator_response_ds = self.generator_response
+        self.microphone_response_ds = decimate(self.microphone_response, decimation_factor)
+        self.generator_response_ds = decimate(self.generator_response, decimation_factor)
+        #self.system_response_ds = decimate(self.system_response, decimation_factor)
+        #self.microphone_response_ds = lfilter(b, a, self.microphone_response[::decimation_factor])
+        #self.generator_response_ds = lfilter(b, a, self.generator_response[::decimation_factor])
 
     def _liftImpulseResponse(self):
         """ Lift the impulse response off the power cepstrum.
@@ -228,11 +248,14 @@ class AbsorptionCoefficient(object):
         window_end = float(self.analysis_settings["window end"])
         taper_length = float(self.analysis_settings["taper length"])
         sample_rate = float(self.measurement_settings["sample rate"])
+        decimation_factor = float(self.analysis_settings["decimation factor"])
+
+        effective_sample_rate = sample_rate / decimation_factor
 
         window_length = window_end - window_start
-        print window_end
-        window_samples = window_length * sample_rate
-        taper_samples = taper_length * sample_rate
+
+        window_samples = window_length * effective_sample_rate
+        taper_samples = taper_length * effective_sample_rate
 
         # Create the window
         tapers = hanning(2 * taper_samples)
@@ -245,7 +268,7 @@ class AbsorptionCoefficient(object):
                         tapers[taper_samples:]]
 
         # Lift impulse response
-        start = window_start * sample_rate
+        start = window_start * effective_sample_rate
         end = start + len(self.window)
 
         self.impulse_response = self.power_cepstrum[start:end].copy()
@@ -260,16 +283,46 @@ class AbsorptionCoefficient(object):
 
             "The inverse Fourier Transform of the logarithmic squared magnitude
             of the Fourier Transform of a signal"
+
+            The scaled generator cepstrum is subtracted from the microphone
+            cepstrum to determine the overall system cepstrum.
+
+            The algorithm to determine the scaling factor, beta, is as follows:
+            1. Determine where the squared modulus of the generator cepstrum reaches
+                1% of it's peak.
+            2. Window out the generator cepstrum from that sample to the sample before
+                the start of the impulse response lifter.
+            3. Window out the same section from the microphone cepstrum.
+            4. Beta is then equal to the ratio of the windowed generator cepstrum to
+                that of the windowed microphone cepstrum.
+
         """
         self.logger.debug("Entering _determineCepstrum")
+
+        # required variables
         fft_size = int(self.measurement_settings["fft size"])
+        window_start = float(self.analysis_settings["window start"])
+        sample_rate = float(self.measurement_settings["sample rate"])
+        decimation_factor = float(self.analysis_settings["decimation factor"])
 
-        cepstrum = lambda x: ifft(log(abs(fft(x, fft_size)) ** 2))
+        effective_sample_rate = sample_rate / decimation_factor
 
-        self.microphone_cepstrum = cepstrum(self.microphone_response)
-        self.generator_cepstrum = cepstrum(self.generator_response)
+        cepstrum = lambda x: irfft(log(abs(rfft(x, fft_size)) ** 2))
 
-        self.power_cepstrum = self.microphone_cepstrum - self.generator_cepstrum
+        # Determine Cepstra
+        self.microphone_cepstrum = cepstrum(self.microphone_response_ds)
+        self.generator_cepstrum = cepstrum(self.generator_response_ds)
+        #self.system_cepstrum = cepstrum(self.system_response_ds)
+        # Determine beta, the scaling factor for the generator cepstrum
+        ## Create envelope
+        gen_cep_enevelop = abs(self.generator_cepstrum) ** 2
+        ## Determine indices less than 100th of the peak
+        indices = gen_cep_enevelop < max(gen_cep_enevelop) / 100
+        ## Determine the index for which this is first true
+        start_index = find(gen_cep_enevelop == gen_cep_enevelop[indices][0])[0]
+        ## End index = window_start - 1
+        end_index = (0.0048 * effective_sample_rate) - 1
 
-        #system_response = ifft(deconvolve(fft(self.microphone_response, fft_size), fft(self.generator_response, fft_size)))
-        #self.power_cepstrum = cepstrum(system_response)
+        self.power_cepstrum = self.microphone_cepstrum -  self.generator_cepstrum
+        #self.power_cepstrum += 0.01
+

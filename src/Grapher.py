@@ -79,7 +79,7 @@ class Grapher(object):
         """
         self.logger.debug("Entering graphFrequencyResponse")
 
-        # get paramaters
+        # get parameters
         sample_rate = float(self.measurement_settings["sample rate"])
         fft_size = int(self.measurement_settings["fft size"])
 
@@ -129,22 +129,28 @@ class Grapher(object):
         # Get Parameters
         fft_size = int(self.measurement_settings["fft size"])
         sample_rate = float(self.measurement_settings["sample rate"])
-        
+        decimation_factor = float(self.measurement_settings["decimation factor"])
+
+        effective_sample_rate = sample_rate / decimation_factor
+
+
+
         if len(alpha) > 0:
-            plot_handler.axes.hold(True)
-            freq = fftfreq(len(alpha), 1 / sample_rate)
+            # Plot real data
+            freq = fftfreq(len(alpha), 1 / effective_sample_rate)
             plot_handler.axes.semilogx(freq, alpha)
-            data = [0.030265443, 0.035447682, 0.047655763, 0.026164963, 0.187046493, 
-                0.390593132,0.362845495,0.685562058,0.528042171,0.334144,0.289366757,
-                0.354272959,0.473338776,0.256837099, 0.550658133]
+            plot_handler.axes.hold(True)
+            data = [0.030265443, 0.035447682, 0.047655763, 0.026164963, 0.187046493,
+                0.390593132, 0.362845495, 0.685562058, 0.528042171, 0.334144, 0.289366757,
+                0.354272959, 0.473338776, 0.256837099, 0.550658133]
             freq = [100, 125, 160, 200, 250, 300, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000]
             plot_handler.axes.semilogx(freq, data, "x")
             plot_handler.axes.hold(False)
         else:
-            freq = fftfreq(fft_size, 1 / sample_rate)
+            # Set up the axis
+            freq = fftfreq(fft_size, 1 / effective_sample_rate)
             data = zeros(fft_size)
             plot_handler.axes.semilogx(freq, data, lw=0)
-            
 
         plot_handler.axes.set_xlim([100, 2100])
         plot_handler.axes.set_xticks([100, 125, 160, 200, 250, 315, 400,
@@ -156,6 +162,103 @@ class Grapher(object):
         plot_handler.axes.grid(color="grey", linestyle="--")
         plot_handler.axes.set_xlabel("Frequency (Hz)")
         plot_handler.axes.set_ylabel(r"Absorption Coefficient")
-
-
+        plot_handler.figure.subplots_adjust(bottom=0.1, top=0.98, right=0.98, left=0.05)
         plot_handler.draw()
+
+    def graphCepstrum(self, microphone_cepstrum, generator_cepstrum, power_cepstrum, impulse_response,
+                      window, window_start, plot_handler):
+        """
+        Graph the microphone cepstrum, generator cepstrum as well as the microphone cepstrum with the generator
+        cepstrum subtracted - known as the power cepstrum in this program.  It also graphs the impulse response
+        extracted from the power cepstrum.
+
+        :param microphone_cepstrum:
+            The cepstrum of the signal captured by the microphone.
+        :type microphone_cepstrum:
+            array of floats
+        :param generator_cepstrum:
+            The cepstrum of the signal from the output of the signal generator directly to the signal acquisition
+            device.
+        :type generator_cepstrum:
+            array of floats
+        :param power_cepstrum:
+            The result of the microphone cepstrum with the generator's cepstrum subtracted.
+        :type power_cepstrum:
+            array of floats
+        :param impulse_response:
+            The impulse response which has been liftered from the power cepstrum.
+        :type impulse_response:
+            array of floats
+        :param window:
+            The window used to window out the impulse response of the cepstrum.
+        :type window:
+            array of floats
+        :param window_start:
+            The start of the window in seconds
+        :type window_start:
+            float
+        :param plot_handler:
+            The matplotlib plot handler
+        :type plot_handler:
+            matplotlib object
+        """
+        self.logger.debug("Entering graphCepstrum")
+
+        # Get paramaters
+        sample_rate = float(self.measurement_settings["sample rate"])
+        decimation_factor = float(self.measurement_settings["decimation factor"])
+        window_type = self.measurement_settings["window type"]
+        effective_sample_rate = sample_rate / decimation_factor
+
+        # Clear figure
+        plot_handler.figure.clf()
+
+        plot_handler.cepstrum_axes = plot_handler.figure.add_subplot(3,1,1)
+        t = arange(0, len(microphone_cepstrum) / effective_sample_rate, 1 / effective_sample_rate)
+        plot_handler.cepstrum_axes.plot(1000 * t, microphone_cepstrum, ls="-", label="Microphone Cepstrum")
+
+        t = arange(0, len(generator_cepstrum) / effective_sample_rate, 1 / effective_sample_rate)
+        plot_handler.cepstrum_axes.plot(1000 * t, generator_cepstrum, color="black", ls="--", label="Generator Cepstrum")
+        plot_handler.cepstrum_axes.legend()
+        plot_handler.cepstrum_axes.set_xlim(0, 15)
+        plot_handler.cepstrum_axes.set_ylim(-1, 1)
+        plot_handler.cepstrum_axes.grid(True)
+        plot_handler.cepstrum_axes.xaxis.set_major_locator(MultipleLocator(1))
+        plot_handler.cepstrum_axes.xaxis.set_minor_locator(MultipleLocator(0.1))
+
+        plot_handler.cepstrum_axes.set_ylabel("c$[n]$")
+        plot_handler.cepstrum_axes.set_title("Microphone and Generator Cepstra")
+
+        plot_handler.power_cepstrum_axes = plot_handler.figure.add_subplot(3,1,2)
+
+        t = arange(0, len(power_cepstrum) / effective_sample_rate, 1 / effective_sample_rate)
+        plot_handler.power_cepstrum_axes.plot(1000 * t, power_cepstrum, ls="-", label="Generator Cepstrum")
+        plot_handler.power_cepstrum_axes.set_xlim(0, 15)
+        plot_handler.power_cepstrum_axes.set_ylim(-1, 1)
+        plot_handler.power_cepstrum_axes.grid(True)
+
+        plot_handler.power_cepstrum_axes.set_ylabel("c$[n]$")
+        plot_handler.power_cepstrum_axes.set_title("Power Cepstrum")
+        plot_handler.power_cepstrum_axes.xaxis.set_major_locator(MultipleLocator(1))
+        plot_handler.power_cepstrum_axes.xaxis.set_minor_locator(MultipleLocator(0.1))
+        # Plot the window
+        t = arange(window_start,window_start + len(window) / effective_sample_rate, 1 / effective_sample_rate)
+
+        if impulse_response != []:
+            if window_type == "one sided":
+                window = r_[0, window]
+
+            plot_handler.power_cepstrum_axes.plot(1000 * t, max(impulse_response) * window, color="grey", ls="--")
+
+        plot_handler.impulse_axes = plot_handler.figure.add_subplot(3,1,3)
+        plot_handler.impulse_axes.set_xlabel("Time (ms)")
+        plot_handler.impulse_axes.set_ylabel("h$[n]$")
+        plot_handler.impulse_axes.set_title("Impulse Response")
+        plot_handler.impulse_axes.xaxis.set_major_locator(MultipleLocator(0.5))
+        plot_handler.impulse_axes.xaxis.set_minor_locator(MultipleLocator(0.1))
+        t = arange(0, len(impulse_response) / effective_sample_rate, 1 / effective_sample_rate)
+        plot_handler.impulse_axes.plot(1000 * t, impulse_response)
+        plot_handler.impulse_axes.grid(True)
+        plot_handler.figure.subplots_adjust(bottom=0.1, top=0.95, right=0.98, left=0.05, hspace=0.3)
+        plot_handler.draw()
+

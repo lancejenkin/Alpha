@@ -25,6 +25,9 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
     exportData = pyqtSignal("QString")
     loadMeasurement = pyqtSignal("QString")
     saveMeasurement = pyqtSignal("QString")
+    showPreferences = pyqtSignal()
+    savePreferences = pyqtSignal("QString")
+    loadPreferences = pyqtSignal("QString")
     exit = pyqtSignal()
 
     def __init__(self, measurement_settings, audio_devices):
@@ -49,6 +52,7 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self.measurement_settings = measurement_settings
         self.audio_devices = audio_devices
         self.grapher = Grapher(self.measurement_settings)
+        self.alpha = None
 
         self.setupUi(self)
         self._setupWidgets()
@@ -63,40 +67,19 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self.logger.debug("Entering update")
 
         self.grapher.graphAbsorption(self.alpha.alpha, self.AlphaPlot)
+        self.grapher.graphCepstrum(self.alpha.microphone_cepstrum,
+            self.alpha.generator_cepstrum, self.alpha.power_cepstrum, self.alpha.impulse_response,
+            self.alpha.window, float(self.alpha.measurement_settings["window start"]), self.CepstrumPlot)
 
     def _setupWidgets(self):
         """ Setup the widgets to show the user.
 
-            For the rapid view, the input / output devices are populated, and
-            the graph is formatted.
+            The graph is formatted with no data.
         """
         self.logger.debug("Entering _setupWidgets")
 
-        # Populate the input / output devices
-        for audio_device in self.audio_devices:
-            name = audio_device.name
-            index = audio_device.index
-            if audio_device.input_channels > 0:
-                self.InputDeviceList.addItem(name, index)
-            if audio_device.output_channels > 0:
-                self.OutputDeviceList.addItem(name, index)
-
-        # Set the selected input and output device
-        default_input_device = self.measurement_settings["input device"]
-        default_output_device = self.measurement_settings["output device"]
-
-        # Default to the first entries
-        self.InputDeviceList.setCurrentIndex(0)
-        self.OutputDeviceList.setCurrentIndex(0)
-
-        # Update if available
-        index = self.InputDeviceList.findData(default_input_device)
-        self.InputDeviceList.setCurrentIndex(index)
-
-        index = self.OutputDeviceList.findData(default_output_device)
-        self.OutputDeviceList.setCurrentIndex(index)
-
         self.grapher.graphAbsorption([], self.AlphaPlot)
+        self.grapher.graphCepstrum([], [], [], [], [], 0, self.CepstrumPlot)
 
     def _updateMeasurementSettings(self):
         """ Update the Measurement Settings dictionary.
@@ -118,20 +101,20 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         """ Connects the various button signals to the class signals. """
         self.logger.debug("Entering _setupSignals")
 
-        self.StartMesurement.clicked.connect(self.startMeasurement)
-        self.Exit.clicked.connect(self.exit)
-
         save_func = self._showSaveDialog
-        self.SaveGraph.clicked.connect(lambda: save_func("graph"))
-        self.ExportData.clicked.connect(lambda: save_func("csv"))
-        self.SaveMeasurement.clicked.connect(lambda: save_func("measurement"))
+        self.actionSave.triggered.connect(lambda: save_func("measurement"))
+        self.actionExport_Data.triggered.connect(lambda: save_func("csv"))
+        self.actionExport_Graph.triggered.connect(lambda: save_func("graph"))
+        self.actionSave_Preferences.triggered.connect(lambda: save_func("preferences"))
 
         load_func = self._showOpenDialog
-        self.LoadMeasurement.clicked.connect(lambda: load_func("measurement"))
+        self.actionSave_Preferences.triggered.connect(lambda: load_func("preferences"))
+        self.actionLoad_Measurement.triggered.connect(lambda: load_func("measurement"))
+        self.actionExit.triggered.connect(self.exit)
 
-        update_func = self._updateMeasurementSettings
-        self.OutputDeviceList.currentIndexChanged.connect(update_func)
-        self.InputDeviceList.currentIndexChanged.connect(update_func)
+        self.actionStart_Measurement.triggered.connect(self.startMeasurement)
+
+        self.actionPreferences.triggered.connect(self.showPreferences)
 
     def _showOpenDialog(self, file_type):
         """ Shows the open dialog to get the filename to load the required data.
@@ -148,6 +131,10 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
             caption = "Select Measurement File to Load"
             filter = "AlphaDb (*.db)"
             signal = self.loadMeasurement
+        elif file_type == "preferences":
+            caption = "Select Preferences File to Load"
+            filter = "Preferences (*.db)"
+            signal = self.loadPreferences
         else:
             self.logger.debug("Invalid file_type passed: %s" % (file_type))
             return
@@ -175,7 +162,12 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
 
         if file_type == "graph":
             caption = "Select file to save the graph"
-            filter = "PNG (*.png)"
+            supported_file_types = self.AlphaPlot.figure.canvas.get_supported_filetypes_grouped()
+            # Get available output formats
+            filter = []
+            for key, value in supported_file_types.items():
+                filter.append("%s (*.%s)" % (key, " *.".join(value)))
+            filter = ";;".join(filter)
             signal = self.saveGraph
         elif file_type == "csv":
             caption = "Select file to export data to"
@@ -185,6 +177,10 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
             caption = "Select file to save the measurement to"
             filter = "AlphaDb (*.db)"
             signal = self.saveMeasurement
+        elif file_type == "preferences":
+            caption = "Select Filename to save Preferences"
+            filter = "Preferences (*.db)"
+            signal = self.savePreferences
         else:
             self.logger.debug("Invalid file_type passed: %s" % (file_type))
             return

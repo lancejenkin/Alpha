@@ -10,7 +10,8 @@ MLS signals are precalculated, and retrieved from a database using a seperate
 interface.
 """
 from pylab import *
-from scipy.signal import butter, lfilter, filtfilt
+from scipy.signal import butter, lfilter, filtfilt, iirdesign
+from scipy.fftpack import rfft, rfftfreq
 import logging
 
 from MlsDb import MlsDb
@@ -89,9 +90,13 @@ class SignalGenerator(object):
             self.filterSignal(lpf_cutoff, lpf_order, "low")
         if hpf_enabled == 1:
             self.filterSignal(hpf_cutoff, hpf_order, "high")
+
+
+        #self.inverseFilter()
         # Adjust gain
         # TODO: Get gain from database
-        self.signal *= 0.5
+        self.signal /= max(abs(self.signal))
+        self.signal *= 1
 
         # Pad the filter with impulse, and delay at the end
         if pad_signal == 1:
@@ -101,6 +106,93 @@ class SignalGenerator(object):
         tmp_signal = self.signal
         for i in range(signal_reps):
             self.signal = r_[self.signal, tmp_signal]
+
+    def inverseFilter(self):
+        """
+            Loads the frequency response of the loud speaker,
+            fits a cosine series to the logarithm of squared magnitude of the frequency response.
+            determines the magnitude of the spectrum by
+                |Sf| = |St| / |Sl|
+            with:
+                Sf the frequency repsonse of the consentation filter
+                St is the target spectrum
+                Sl is the loudspeaker response
+
+            determines the minimum phase of the compensation filter:
+        """
+        self.logger.debug("Entering inverseFilter")
+        import BaseDelegate
+        # Create new base delegate
+        bd = BaseDelegate.BaseDelegate()
+
+        # Load the frequency response
+        measurement_file = "../testdata/120802_frequency_response_20.fdb"
+
+        freq_response = bd.loadFrequencyResponse(measurement_file)
+        sample_rate = float(freq_response.measurement_settings["sample rate"])
+
+        N = len(freq_response.frequency_response)
+        # find the bin of 4000 Hz
+        bin = float(floor(4410* N / sample_rate))
+        freq = freq_response.frequency_response
+
+        # We are solving Ax = 2 * log10(abs(y))
+        # Determine A
+        M = 20
+        k = arange(bin)
+
+        a = array([])
+        for m in range(M):
+            a = r_[a, cos(2 * pi * k * m / bin)]
+        A = matrix(reshape(a, (M, bin)))
+
+        # Determine the weights
+        W = pinv(A).transpose()*asmatrix(2 * log10(abs(freq[:bin]))).transpose()
+
+        # Create 2 * log10(abs(y))
+        s = zeros(bin)
+        for m, w in enumerate(W):
+            s += w[0,0] * cos(2 * pi * k * m / bin)
+
+        # target spectrum is now
+        mix_samples = ceil(bin * 0.1)
+        # create first half of s
+        transistion = linspace(1, 0, mix_samples) * s[-mix_samples:] + linspace(0, 1, mix_samples) * 2 * log10(freq_response.frequency_response[bin - mix_samples: bin])
+        s = r_[s[:bin - mix_samples], transistion, 2 * log10(freq_response.frequency_response[bin:N / 2])]
+
+        # mirror it
+        s = r_[s, s[::-1]]
+
+        plot(s)
+        plot(2*log10(freq_response.frequency_response))
+        show()
+
+        S = 10 ** (s / 2.0)
+        #plot(S,  "--")
+        #plot(freq_response.frequency_response)
+        #show()
+        # compensation filter
+        X = fft(self.signal, N)
+        Sc = abs(freq_response.frequency_response) / abs(X)
+
+        #Sc = abs(S) / abs(freq_response.frequency_response)
+
+        # To ensure that the filter is causal, and the impulse response is as short as possible in the time domain
+        # determine the minimum phase to use with the filter
+        c = ifft(log(abs(Sc) ** -1), N)
+        m = r_[c[0], 2 * c[1:N / 2.0 - 1], c[N/2] ]
+        m = r_[m, zeros(N - len(m))]
+
+        Scmp = exp(fft(m, N))
+
+        Y = Scmp * X
+        x = ifft(Y)
+
+        x = x[:len(self.signal)]
+
+        self.signal = x / max(abs(x))
+
+
 
     def generateSweptSine(self):
         """Generate a linear swept sine wave from lower frequency to an upper
@@ -202,7 +294,7 @@ class SignalGenerator(object):
         # Inverse of the magnitude spectrum
         iaS = abs(S) ** -1
 
-        # c, similiar to the cepstrum, is the inverse of the logarithmic inverse
+        # c, similar to the cepstrum, is the inverse of the logarithmic inverse
         # magnitude spectrum
         c = ifft(log(iaS))
 
@@ -285,14 +377,6 @@ class SignalGenerator(object):
 
         self.signal = repeated_irs
 
-    def generateExpontialSweptSine(self):
-        """
-        Generates an exponentially swept sine from 0 Hz to an
-        upper frequency in a specific time length.
-
-        """
-        self.logger.debug("Entering generateExpontialSweptSine")
-
     def filterSignal(self, cutoff, order, type):
         """ Filters the current signal with a specified filter.
 
@@ -310,11 +394,14 @@ class SignalGenerator(object):
         :type type:
             str
         """
-        self.logger.debug("Entering filterSignal (%s, %s, %s)" % (cutoff,
-                                                                order, type))
+        self.logger.debug("Entering filterSignal (%s, %s, %s)" % (cutoff, order, type))
+
         # Get signal parameters
         sample_rate = float(self.parameters["sample rate"])
 
+        #if type == "high":
+        #    [b, a] = iirdesign(wp=cutoff / (sample_rate / 2), ws = 50 / (sample_rate / 2), gpass=1, gstop=12, ftype="butter")
+        #else:
         [b, a] = butter(order, cutoff / (sample_rate / 2), btype=type)
 
         self.signal = lfilter(b, a, self.signal)

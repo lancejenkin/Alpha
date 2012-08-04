@@ -72,9 +72,10 @@ class Measurement(object):
                                         (signal_reps + 1, -1))
 
         # Since all signals should be located in the same place, only need to
-        # locate the impulse in the first signal.
-        microphone_signal = self.microphone_signals[0]
-        generator_signal = self.generator_signals[0]
+        # locate the impulse in the first usable signal.  The first signal will generally have some distortions due to
+        # the switching on of the sound card.
+        microphone_signal = self.microphone_signals[1]
+        generator_signal = self.generator_signals[1]
 
         microphone_impulse_loc = self._locateSignalImpulse(microphone_signal)
         generator_impulse_loc = self._locateGeneratorImpulse(generator_signal)

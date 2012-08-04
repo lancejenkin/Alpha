@@ -11,6 +11,7 @@ from PyQt4.QtCore import *
 
 from BaseDelegate import BaseDelegate
 from RapidController import RapidController
+from PreferenceDelegate import PreferenceDelegate
 
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
@@ -37,6 +38,31 @@ class RapidDelegate(BaseDelegate, QThread):
         self.window.startMeasurement.connect(self._newMeasurement)
         self.window.loadMeasurement.connect(self._loadMeasurement)
         self.window.saveMeasurement.connect(self._saveMeasurement)
+
+        self.window.showPreferences.connect(self._showPreferences)
+
+    def _showPreferences(self):
+        """ Show the preference dialog """
+        self.logger.debug("Entering _showPreferences")
+
+        if self.window.alpha is  None:
+            self.preferences = PreferenceDelegate(self.measurement_settings)
+        else:
+            self.preferences = PreferenceDelegate(self.window.alpha.measurement_settings)
+        self.preferences.finished.connect(self._setSettings)
+
+    def _setSettings(self):
+        """ Set the settings from the preference dialog """
+        self.logger.debug("Entering _setSettings")
+
+        self.measurement_settings = self.preferences.measurement_settings
+
+        if self.window.alpha is not None:
+            self.window.alpha.measurement_settings = self.preferences.measurement_settings
+            self.window.alpha.determineAlpha()
+            self.window.update()
+
+        self.preferences.done()
 
     def _newMeasurement(self):
         """ Helper method to start a new measurement.
@@ -91,7 +117,7 @@ class RapidDelegate(BaseDelegate, QThread):
         alpha = self.loadAbsorptionCoefficient(measurement_filename)
 
         self.window.alpha = alpha
-
+        self.window.setWindowTitle("Rapid Alpha - %s" % (measurement_filename))
         self.window.update()
 
 if __name__ == "__main__":
