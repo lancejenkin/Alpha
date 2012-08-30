@@ -183,7 +183,7 @@ class AnalysisDelegate(BaseDelegate):
         impulse """
         self.logger.debug("Entering misidentificationAnalysis")
 
-        measurement_file = "/Users/lance/Programming/Python/Masters/testdata/120716_asphalt_irs_9.db"
+        measurement_file = "/Users/lance/Programming/Python/Masters/testdata/2012/08/120806_reflective_63.db"
 
         alpha = self.loadAbsorptionCoefficient(measurement_file)
         print alpha.measurement_settings

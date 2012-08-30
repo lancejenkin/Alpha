@@ -11,6 +11,7 @@ import logging
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from math import log10
 from RapidView.RapidAlphaWindow import Ui_RapidAlphaWindow
 from Grapher import Grapher
 
@@ -54,6 +55,8 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self.grapher = Grapher(self.measurement_settings)
         self.alpha = None
 
+
+
         self.setupUi(self)
         self._setupWidgets()
         self._setupSignals()
@@ -80,6 +83,28 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
 
         self.grapher.graphAbsorption([], self.AlphaPlot)
         self.grapher.graphCepstrum([], [], [], [], [], 0, self.CepstrumPlot)
+
+        # Add Volume slider to toolbar
+        gain = 20 * log10(float(self.measurement_settings["gain"]) )
+
+        self.gainSlider = QSlider(Qt.Horizontal)
+        self.gainSlider.setMaximumWidth(100)
+        self.gainSlider.setMaximum(0)
+        self.gainSlider.setMinimum(-1000)
+        self.gainSlider.setValue(gain)
+
+        self.gainSpin = QDoubleSpinBox()
+        self.gainSpin.setMaximum(0)
+        self.gainSpin.setMinimum(-10)
+        self.gainSpin.setSingleStep(0.01)
+        self.gainSpin.setValue(gain)
+
+        self.toolBar.addSeparator()
+        self.toolBar.addWidget(QSpacerItem(0,0).widget())
+        self.toolBar.addWidget(QLabel("Gain: "))
+        self.toolBar.addWidget(self.gainSlider)
+        self.toolBar.addWidget(self.gainSpin)
+        self.toolBar.addWidget(QLabel(" dB"))
 
     def _updateMeasurementSettings(self):
         """ Update the Measurement Settings dictionary.
@@ -115,6 +140,29 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self.actionStart_Measurement.triggered.connect(self.startMeasurement)
 
         self.actionPreferences.triggered.connect(self.showPreferences)
+
+        self.gainSlider.valueChanged.connect(self._updateWidgets)
+        self.gainSpin.valueChanged.connect(self._updateWidgets)
+
+    def _updateWidgets(self):
+        """ Keeps widgets synchronized with the measurement settings, and each other
+        """
+        self.logger.debug("Entering _updateWidgets")
+
+        # Keep the gain in sync
+        gain = float(self.measurement_settings["gain"])
+        gain_db = 20 * log10(gain)
+
+        self.logger.debug("sender: %s" %(self.sender()))
+        if self.sender() == self.gainSlider:
+            self.logger.debug("Slider: %s" % (self.gainSlider.value()))
+            self.gainSpin.setValue((self.gainSlider.value() / 100.0))
+        elif self.sender() == self.gainSpin:
+            self.gainSlider.setValue(self.gainSpin.value() * 100.0)
+
+        gain = 10 ** (self.gainSpin.value() / 20.0)
+
+        self.measurement_settings["gain"] = gain
 
     def _showOpenDialog(self, file_type):
         """ Shows the open dialog to get the filename to load the required data.

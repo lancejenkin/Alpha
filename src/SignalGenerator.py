@@ -10,7 +10,7 @@ MLS signals are precalculated, and retrieved from a database using a seperate
 interface.
 """
 from pylab import *
-from scipy.signal import butter, lfilter, filtfilt, iirdesign
+from scipy.signal import butter, lfilter, filtfilt, iirdesign, firwin
 from scipy.fftpack import rfft, rfftfreq
 import logging
 
@@ -75,6 +75,10 @@ class SignalGenerator(object):
         pad_signal = int(self.parameters["pad signal"])
         signal_reps = int(self.parameters["signal reps"])
 
+        if "gain" in self.parameters:
+            gain = float(self.parameters["gain"])
+        else:
+            gain = 1
         # Generate the signal
         if signal_type.lower() == "swept sine":
             self.generateSweptSine()
@@ -96,7 +100,7 @@ class SignalGenerator(object):
         # Adjust gain
         # TODO: Get gain from database
         self.signal /= max(abs(self.signal))
-        self.signal *= 1
+        self.signal *= gain
 
         # Pad the filter with impulse, and delay at the end
         if pad_signal == 1:
@@ -399,12 +403,19 @@ class SignalGenerator(object):
         # Get signal parameters
         sample_rate = float(self.parameters["sample rate"])
 
-        #if type == "high":
-        #    [b, a] = iirdesign(wp=cutoff / (sample_rate / 2), ws = 50 / (sample_rate / 2), gpass=1, gstop=12, ftype="butter")
-        #else:
-        [b, a] = butter(order, cutoff / (sample_rate / 2), btype=type)
+        if type == "high":
+            [b, a] = butter(order, cutoff / (sample_rate / 2), btype=type)
+            self.signal = lfilter(b, a, self.signal)
+        #    b = firwin(251, cutoff=[50, 200], nyq=(sample_rate / 2))
+        #    a = 1
+        #    self.signal = lfilter(b, a, self.signal)
 
-        self.signal = lfilter(b, a, self.signal)
+        #    [b, a] = iirdesign(wp=cutoff / (sample_rate / 2), ws = 50 / (sample_rate / 2), gpass=1, gstop=12, ftype="butter")
+        else:
+
+            [b, a] = butter(order, cutoff / (sample_rate / 2), btype=type)
+
+            self.signal = lfilter(b, a, self.signal)
 
     def padSignal(self):
         """ Pad signal with an impulse at the front of the signal, followed by

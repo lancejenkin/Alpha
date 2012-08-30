@@ -32,8 +32,6 @@ class MeasurementDb(object):
             new_db = True
 
         try:
-            print filename
-
             self.conn = sqlite3.connect(filename)
         except sqlite3.OperationalError as error:
             self.logger.error("Could not open %s: %s" % (filename, error))

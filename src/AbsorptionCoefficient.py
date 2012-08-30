@@ -9,6 +9,7 @@
 
 import logging
 from scipy.signal import butter, lfilter, deconvolve, cheby1, filtfilt, decimate
+from scipy.signal import *
 from numpy import *
 from pylab import *
 from MlsDb import MlsDb
@@ -70,6 +71,42 @@ class AbsorptionCoefficient(object):
         # Extract the signals from the recorded responses, and average
         self._extractSignals()
 
+        # Determine the system response of the signals
+        self._determineResponse()
+
+        # LPF the signals and decimate
+        self._downsampleSignals()
+
+        # Determine the Cepstrum
+        self._determineCepstrum()
+
+        # Lift the impulse response
+        self._liftImpulseResponse()
+
+        # Determine the absorption coefficient
+        self._determineAbsorptionCoefficient()
+
+    def _determineAbsorptionCoefficient(self):
+        """ By taking the Fourier transform of the impulse response, the absorption coefficient can be determined.
+
+        The absorption coefficient is simply,
+         a = 1 - |F{h}|^2
+         with:
+            a - the absorption coefficient
+            h - the impulse response
+            F{} - The Fourier transform operator
+        """
+        self.logger.debug("Entering _determineAbsorptionCoefficient")
+
+        fft_size = int(self.measurement_settings["fft size"])
+        self.alpha = 1 - abs(fft(self.impulse_response, fft_size)) ** 2
+
+    def _determineResponse(self):
+        """ For Psuedorandom signal, determine the system response using the autocorrellation property of the signal.
+
+        """
+        self.logger.debug("Entering _determineResponse")
+
         # If MLS signal, then utilize the circular convolution property
         signal_type = self.measurement_settings["signal type"]
 
@@ -121,25 +158,16 @@ class AbsorptionCoefficient(object):
             tmp_response[:len(window) / 2] *= window[:len(window) / 2]
             append(self.generator_response, tmp_response)
 
-            self.system_response = ifft(fft(self.microphone_response) / fft(self.generator_response))
+            self.microphone_response = self.microphone_response[:1638]
+            self.generator_response = self.generator_response[:1638]
+            win = hanning(100)
+            self.microphone_response[-50:] *= win[-50:]
+            self.generator_response[-50:] *= win[-50:]
 
+            self.system_response = ifft(fft(self.microphone_response) / fft(self.generator_response))
         else:
             self.microphone_response = self.average_microphone_response
             self.generator_response = self.average_generator_response
-
-        # LPF the signals and decimate
-        self._downsampleSignals()
-
-        # Determine the Cepstrum
-        self._determineCepstrum()
-
-        # Lift the impulse response
-        self._liftImpulseResponse()
-
-        # Determine the absorption coefficient
-        fft_size = int(self.measurement_settings["fft size"])
-        self.alpha = 1 - abs(fft(self.impulse_response, fft_size)) ** 2
-
     def _extractSignals(self):
         """ Extract the microphone and generator signals from the raw signals.
 
@@ -228,8 +256,8 @@ class AbsorptionCoefficient(object):
 
 
         # Down sample the responses
-        self.microphone_response_ds = decimate(self.microphone_response, decimation_factor)
-        self.generator_response_ds = decimate(self.generator_response, decimation_factor)
+        self.microphone_response_ds = decimate(self.microphone_response, decimation_factor, ftype="fir")
+        self.generator_response_ds = decimate(self.generator_response, decimation_factor, ftype="fir")
         #self.system_response_ds = decimate(self.system_response, decimation_factor)
         #self.microphone_response_ds = lfilter(b, a, self.microphone_response[::decimation_factor])
         #self.generator_response_ds = lfilter(b, a, self.generator_response[::decimation_factor])
@@ -260,13 +288,12 @@ class AbsorptionCoefficient(object):
         # Create the window
         tapers = hanning(2 * taper_samples)
         if window_type == "one sided":
-            self.window = r_[ones(window_samples - taper_samples),
-                        tapers[taper_samples:]]
+            self.window = r_[ones(window_samples - taper_samples), tapers[taper_samples:]]
         elif window_type == "two sided":
             self.window = r_[tapers[:taper_samples],
                         ones(window_samples - (2 * taper_samples)),
                         tapers[taper_samples:]]
-
+        self.window[-1] = 0
         # Lift impulse response
         start = window_start * effective_sample_rate
         end = start + len(self.window)
@@ -313,16 +340,11 @@ class AbsorptionCoefficient(object):
         self.microphone_cepstrum = cepstrum(self.microphone_response_ds)
         self.generator_cepstrum = cepstrum(self.generator_response_ds)
         #self.system_cepstrum = cepstrum(self.system_response_ds)
-        # Determine beta, the scaling factor for the generator cepstrum
-        ## Create envelope
-        gen_cep_enevelop = abs(self.generator_cepstrum) ** 2
-        ## Determine indices less than 100th of the peak
-        indices = gen_cep_enevelop < max(gen_cep_enevelop) / 100
-        ## Determine the index for which this is first true
-        start_index = find(gen_cep_enevelop == gen_cep_enevelop[indices][0])[0]
-        ## End index = window_start - 1
-        end_index = (0.0048 * effective_sample_rate) - 1
 
-        self.power_cepstrum = self.microphone_cepstrum -  self.generator_cepstrum
-        #self.power_cepstrum += 0.01
+        #self.power_cepstrum = ifft(log(abs(fft(self.microphone_response_ds, fft_size) /  fft(self.generator_response_ds, fft_size)) ** 2))
+
+        self.power_cepstrum = self.microphone_cepstrum - self.generator_cepstrum
+
+
+
 

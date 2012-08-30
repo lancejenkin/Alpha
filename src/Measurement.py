@@ -125,12 +125,12 @@ class Measurement(object):
         """ Locates the synchronization impulse in the generator response.
 
         Due to the high SNR of the generator signal, a simple threshold
-        algorithm suffices to find the synchronization impulse in the generator
-        signal. It should be noted, pre-ringing occurs due to the out of phase
-        response of the band-limiting filters in the AD and DA parts of the
-        sound-card.  The ringing has a frequency of Fs / 2, and can be removed
-        by phase shifting the signal using the Hilbert transform.  This will
-        help in locating the impulse.
+        algorithm will help find the neighbourhood of the synchronization
+        impulse.  The true location of the impulse is then located by
+        finding the peak value in the neighbourhood.  The neighbourhood
+        is defined as 50 samples from the first sample exceeding the
+        threshold.  It should be noted that there is pre-ringing before the
+        impulse, due to the filters in the sound card.
 
         :param signal:
             The generator signal captured.
@@ -144,13 +144,22 @@ class Measurement(object):
         self.logger.debug("Entering _locateGeneratorImpulse")
 
         threshold = float(self.measurement_settings["impulse threshold"])
+
+        # number of samples in the neighbourhood
+        neighbourhood = 100
+
         # Get the envelope of the signal, removing the pre-ringing
         signal = abs(signal)
 
         for sample_index, sample in enumerate(signal):
             if sample > threshold:
-                self.logger.debug("Impulse found at %s" % (sample_index))
-                return sample_index
+                # extract the neighbourhood
+                tmp = signal[sample_index:sample_index + neighbourhood]
+
+                peak_index = find(tmp == max(tmp))[0]
+                peak_index += sample_index
+                self.logger.debug("Impulse found at %s" % (peak_index))
+                return int(peak_index)
 
         self.logger.debug("Impulse not found!")
         return -1

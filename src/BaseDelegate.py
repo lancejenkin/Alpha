@@ -64,16 +64,16 @@ class BaseDelegate(object):
 
         self.config_db._setDefaults()
 
-    def newMeasurement(self, measurment_settings=None):
+    def newMeasurement(self, measurement_settings=None):
         """ Starts a new measurement with the specified settings.
 
         Note, could take a non-negligible amount of time, should run in separate
         thread if used in a GUI environment.
 
-        :param measurment_settings:
+        :param measurement_settings:
             A dictionary containing the measurements settings to use for a new
             measurement. If not given, then use default settings
-        :type measurment_settings:
+        :type measurement_settings:
             dict
 
         :returns:
@@ -82,10 +82,10 @@ class BaseDelegate(object):
         """
         self.logger.debug("Entering newMeasurement")
 
-        if measurment_settings is None:
-            measurment_settings = self.measurment_settings
+        if measurement_settings is None:
+            measurement_settings = self.measurement_settings
 
-        measurement = Measurement(measurment_settings)
+        measurement = Measurement(measurement_settings)
 
         measurement.startMeasurement()
 

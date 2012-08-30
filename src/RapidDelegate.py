@@ -117,6 +117,7 @@ class RapidDelegate(BaseDelegate, QThread):
         alpha = self.loadAbsorptionCoefficient(measurement_filename)
 
         self.window.alpha = alpha
+        self.window.grapher.measurement_settings = alpha.measurement_settings
         self.window.setWindowTitle("Rapid Alpha - %s" % (measurement_filename))
         self.window.update()
 

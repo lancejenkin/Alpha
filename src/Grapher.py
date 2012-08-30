@@ -140,10 +140,60 @@ class Grapher(object):
             freq = fftfreq(len(alpha), 1 / effective_sample_rate)
             plot_handler.axes.semilogx(freq, alpha)
             plot_handler.axes.hold(True)
-            data = [0.030265443, 0.035447682, 0.047655763, 0.026164963, 0.187046493,
-                0.390593132, 0.362845495, 0.685562058, 0.528042171, 0.334144, 0.289366757,
-                0.354272959, 0.473338776, 0.256837099, 0.550658133]
-            freq = [100, 125, 160, 200, 250, 300, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000]
+            data = [0.02,
+                    0.02,
+                    0.02,
+                    0.02,
+                    0.05,
+                    0.29,
+                    0.03,
+                    0.00,
+                    0.03,
+                    0.13,
+                    0.12,
+                    0.02,
+                    0.02,
+                    0.03,
+                    0.01,
+                    0.06,
+                    0.02,
+                    0.02,
+                    0.02,
+                    0.04,
+                    0.02,
+                    0.01,
+                    0.09,
+                    0.06,
+                    0.03,
+                    0.04,
+                    0.05]
+            freq = [100,
+                    112,
+                    125,
+                    140,
+                    160,
+                    180,
+                    200,
+                    224,
+                    250,
+                    280,
+                    315,
+                    355,
+                    400,
+                    450,
+                    500,
+                    560,
+                    630,
+                    710,
+                    800,
+                    900,
+                    1000,
+                    1120,
+                    1250,
+                    1400,
+                    1600,
+                    1800,
+                    2000]
             plot_handler.axes.semilogx(freq, data, "x")
             plot_handler.axes.hold(False)
         else:
@@ -153,10 +203,9 @@ class Grapher(object):
             plot_handler.axes.semilogx(freq, data, lw=0)
 
         plot_handler.axes.set_xlim([100, 2100])
-        plot_handler.axes.set_xticks([100, 125, 160, 200, 250, 315, 400,
-                                     500, 630, 800, 1000, 1250, 1600, 2000])
-        plot_handler.axes.set_xticklabels([100, 125, 160, 200, 250, 315, 400,
-                                     500, 630, 800, 1000, 1250, 1600, 2000])
+        plot_handler.axes.set_xticks([100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000])
+        plot_handler.axes.set_xticklabels([100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000])
+        plot_handler.axes.xaxis.set_minor_locator(NullLocator())
         plot_handler.axes.set_ylim([0, 1])
         plot_handler.axes.set_yticks(arange(0, 1.1, 0.1))
         plot_handler.axes.grid(color="grey", linestyle="--")
@@ -242,12 +291,16 @@ class Grapher(object):
         plot_handler.power_cepstrum_axes.xaxis.set_major_locator(MultipleLocator(1))
         plot_handler.power_cepstrum_axes.xaxis.set_minor_locator(MultipleLocator(0.1))
         # Plot the window
+
         t = arange(window_start,window_start + len(window) / effective_sample_rate, 1 / effective_sample_rate)
 
-        if impulse_response != []:
-            if window_type == "one sided":
-                window = r_[0, window]
+        # Fix off by one errors
+        if len(window) == len(t) - 1:
+            t = t[:-1]
+        elif len(window) == len(t) + 1:
+            t = r_[t, t[-1] + (1 / effective_sample_rate)]
 
+        if impulse_response != []:
             plot_handler.power_cepstrum_axes.plot(1000 * t, max(impulse_response) * window, color="grey", ls="--")
 
         plot_handler.impulse_axes = plot_handler.figure.add_subplot(3,1,3)
@@ -257,7 +310,16 @@ class Grapher(object):
         plot_handler.impulse_axes.xaxis.set_major_locator(MultipleLocator(0.5))
         plot_handler.impulse_axes.xaxis.set_minor_locator(MultipleLocator(0.1))
         t = arange(0, len(impulse_response) / effective_sample_rate, 1 / effective_sample_rate)
-        plot_handler.impulse_axes.plot(1000 * t, impulse_response)
+
+        # Fix off by one errors
+        if len(impulse_response) == len(t) - 1:
+            t = t[:-1]
+        elif len(impulse_response) == len(t) + 1:
+            t = r_[t, t[-1] + (1 / effective_sample_rate)]
+        if len(impulse_response) > 0:
+            plot_handler.impulse_axes.stem(1000 * t, impulse_response)
+        else:
+            plot_handler.impulse_axes.plot(1000 * t, impulse_response)
         plot_handler.impulse_axes.grid(True)
         plot_handler.figure.subplots_adjust(bottom=0.1, top=0.95, right=0.98, left=0.05, hspace=0.3)
         plot_handler.draw()
