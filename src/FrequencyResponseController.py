@@ -176,7 +176,7 @@ class FrequencyResponseController(QMainWindow, Ui_FrequencyResponse):
         self.signalType.addItem("Inverse Repeat Sequence")
         self.signalType.addItem("Maximum Length Sequence")
         self.signalType.addItem("Low Pass Swept Sine")
-        self.signalType.addItem("Linear Swept Sine")
+        self.signalType.addItem("Swept Sine")
 
         # Populate Filters
         self.filterType.clear()

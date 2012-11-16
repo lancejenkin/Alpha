@@ -90,7 +90,7 @@ class AudioDevice(object):
 
 class AudioIO(object):
     # Number of frames stored in the buffer
-    _FRAMES_PER_BUFFER = 4096
+    _FRAMES_PER_BUFFER = 4096 / 4
 
     def __init__(self, sample_rate=44100):
         """ Default Constructor
@@ -122,10 +122,15 @@ class AudioIO(object):
         """
         self.logger.debug("Entering _loadPortAudio")
 
-        if find_library("portaudio") == "":
-            raise Exception("Port Audio not found")
+        port_audio = find_library("portaudio")
 
-        self.port_audio = CDLL(find_library("portaudio"))
+        if port_audio is None:
+            port_audio = "./PortAudio.dll"
+
+        try:
+            self.port_audio = CDLL(port_audio)
+        except Exception as inst:
+            raise Exception("Port Audio not load: %s" % (inst))
 
         error = self.port_audio.Pa_Initialize()
 
@@ -234,11 +239,9 @@ class AudioIO(object):
         self.port_audio.Pa_StopStream(self.stream)
 
         # Retrieve the recorded response
-        left_channel_buffer = cast(self.data.left_channel_buffer,
-                                   POINTER(c_float))
+        left_channel_buffer = cast(self.data.left_channel_buffer, POINTER(c_float))
 
-        right_channel_buffer = cast(self.data.right_channel_buffer,
-                                     POINTER(c_float))
+        right_channel_buffer = cast(self.data.right_channel_buffer, POINTER(c_float))
 
         # Cast to Python array
         left_channel_data = []
@@ -302,12 +305,10 @@ class AudioIO(object):
 
         # Copy the signal data to the memory
         for signal_index in range(left_signal_length):
-            self.left_channel_signal_memory[signal_index] = (
-                left_channel_signal[signal_index])
+            self.left_channel_signal_memory[signal_index] = (left_channel_signal[signal_index])
 
         for signal_index in range(right_signal_length):
-            self.right_channel_signal_memory[signal_index] = (
-                right_channel_signal[signal_index])
+            self.right_channel_signal_memory[signal_index] = (right_channel_signal[signal_index])
 
         # Reserve memory to record the response
         max_signal_length = max(left_signal_length, right_signal_length)

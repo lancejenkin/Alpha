@@ -85,19 +85,15 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self.grapher.graphCepstrum([], [], [], [], [], 0, self.CepstrumPlot)
 
         # Add Volume slider to toolbar
-        gain = 20 * log10(float(self.measurement_settings["gain"]) )
-
         self.gainSlider = QSlider(Qt.Horizontal)
         self.gainSlider.setMaximumWidth(100)
         self.gainSlider.setMaximum(0)
         self.gainSlider.setMinimum(-1000)
-        self.gainSlider.setValue(gain)
 
         self.gainSpin = QDoubleSpinBox()
         self.gainSpin.setMaximum(0)
         self.gainSpin.setMinimum(-10)
         self.gainSpin.setSingleStep(0.01)
-        self.gainSpin.setValue(gain)
 
         self.toolBar.addSeparator()
         self.toolBar.addWidget(QSpacerItem(0,0).widget())
@@ -105,6 +101,17 @@ class RapidController(QMainWindow, Ui_RapidAlphaWindow):
         self.toolBar.addWidget(self.gainSlider)
         self.toolBar.addWidget(self.gainSpin)
         self.toolBar.addWidget(QLabel(" dB"))
+
+        self.updateWidgets()
+
+    def updateWidgets(self):
+        """ Set the values for widgets on the screen.
+
+        """
+
+        gain = 20 * log10(float(self.measurement_settings["gain"]) )
+        self.gainSlider.setValue(gain)
+        self.gainSpin.setValue(gain)
 
     def _updateMeasurementSettings(self):
         """ Update the Measurement Settings dictionary.

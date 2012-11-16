@@ -101,7 +101,7 @@ class Grapher(object):
             4000, 5000, 6300, 8000, 1000, 12500])
         plot_handler.axes.set_xticklabels([16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125,
             160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
-            4000, 5000, 6300, 8000, 1000, 12500])
+            4000, 5000, 6300, 8000, 1000, 12500], rotation=30)
         plot_handler.axes.set_yticks(arange(-50, 1, 5))
         plot_handler.axes.set_yticklabels(arange(-50, 1, 5))
         plot_handler.axes.set_xlim([20, 5000])
@@ -140,39 +140,38 @@ class Grapher(object):
             freq = fftfreq(len(alpha), 1 / effective_sample_rate)
             plot_handler.axes.semilogx(freq, alpha)
             plot_handler.axes.hold(True)
-            data = [0.02,
-                    0.02,
-                    0.02,
-                    0.02,
-                    0.05,
-                    0.29,
-                    0.03,
-                    0.00,
-                    0.03,
-                    0.13,
-                    0.12,
-                    0.02,
-                    0.02,
-                    0.03,
-                    0.01,
-                    0.06,
-                    0.02,
-                    0.02,
-                    0.02,
-                    0.04,
-                    0.02,
-                    0.01,
-                    0.09,
-                    0.06,
-                    0.03,
-                    0.04,
-                    0.05]
+            data = [0.041118711,
+                    0.042323201,
+                    0.044548802,
+                    0.062729163,
+                    0.049690929,
+                    0.02259814,
+                    0.028213799,
+                    0.122448519,
+                    0.143197981,
+                    0.056113836,
+                    0.161168295,
+                    0.190914479,
+                    0.203262684,
+                    0.277842701,
+                    0.392483137,
+                    0.474093027,
+                    0.607150545,
+                    0.711739335,
+                    0.896910867,
+                    0.818357459,
+                    0.785472591,
+                    0.743618322,
+                    0.630230089,
+                    0.539540816,
+                    0.433922902,
+                    0.323950617
+            ]
             freq = [100,
                     112,
                     125,
                     140,
-                    160,
-                    180,
+                    150,
                     200,
                     224,
                     250,
@@ -193,7 +192,8 @@ class Grapher(object):
                     1400,
                     1600,
                     1800,
-                    2000]
+                    2000
+            ]
             plot_handler.axes.semilogx(freq, data, "x")
             plot_handler.axes.hold(False)
         else:
@@ -207,7 +207,7 @@ class Grapher(object):
         plot_handler.axes.set_xticklabels([100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000])
         plot_handler.axes.xaxis.set_minor_locator(NullLocator())
         plot_handler.axes.set_ylim([0, 1])
-        plot_handler.axes.set_yticks(arange(0, 1.1, 0.1))
+        plot_handler.axes.yaxis.set_major_locator(MultipleLocator(0.1))
         plot_handler.axes.grid(color="grey", linestyle="--")
         plot_handler.axes.set_xlabel("Frequency (Hz)")
         plot_handler.axes.set_ylabel(r"Absorption Coefficient")

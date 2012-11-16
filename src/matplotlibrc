@@ -114,7 +114,7 @@ lines.antialiased : True         # render lines in antialised (no jaggies)
 # The font.size property is the default font size for text, given in pts.
 # 12pt is the standard value.
 #
-#font.family         : sans-serif
+font.family         : serif
 #font.style          : normal
 #font.variant        : normal
 #font.weight         : medium
@@ -125,8 +125,10 @@ lines.antialiased : True         # render lines in antialised (no jaggies)
 # relative to font.size, using the following values: xx-small, x-small,
 # small, medium, large, x-large, xx-large, larger, or smaller
 font.size           : 12.0
-#font.serif          : Bitstream Vera Serif, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif
-#font.sans-serif     : Bitstream Vera Sans, Lucida Grande, Verdana, Geneva, Lucid, Arial, Helvetica, Avant Garde, sans-serif
+#font.serif          : Palatino
+font.serif          : Palatino, Bitstream Vera Serif, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif
+font.sans-serif     : Palatino
+#font.sans-serif     : Palatino, Bitstream Vera Sans, Lucida Grande, Verdana, Geneva, Lucid, Arial, Helvetica, Avant Garde, sans-serif
 #font.cursive        : Apple Chancery, Textile, Zapf Chancery, Sand, cursive
 #font.fantasy        : Comic Sans MS, Chicago, Charcoal, Impact, Western, fantasy
 #font.monospace      : Bitstream Vera Sans Mono, Andale Mono, Nimbus Mono L, Courier New, Courier, Fixed, Terminal, monospace
@@ -139,7 +141,7 @@ font.size           : 12.0
 #text.color          : black
 
 ### LaTeX customizations. See http://www.scipy.org/Wiki/Cookbook/Matplotlib/UsingTex
-#text.usetex         : False  # use latex for all text handling. The following fonts
+#text.usetex         : True  # use latex for all text handling. The following fonts
                               # are supported through the usual rc parameter settings:
                               # new century schoolbook, bookman, times, palatino,
                               # zapf chancery, charter, serif, sans-serif, helvetica,
@@ -203,8 +205,8 @@ font.size           : 12.0
 #axes.edgecolor      : black   # axes edge color
 #axes.linewidth      : 1.0     # edge linewidth
 #axes.grid           : False   # display grid or not
-#axes.titlesize      : large   # fontsize of the axes title
-#axes.labelsize      : medium  # fontsize of the x any y labels
+axes.titlesize      : 14   # fontsize of the axes title
+axes.labelsize      : 10  # fontsize of the x any y labels
 #axes.labelweight    : normal  # weight of the x and y labels
 #axes.labelcolor     : black
 #axes.axisbelow      : False   # whether axis gridlines and ticks are below
@@ -234,7 +236,7 @@ axes.color_cycle    : black,b, g, r, c, m, y, k  # color cycle for plot lines
 #xtick.major.pad      : 4      # distance to major tick label in points
 #xtick.minor.pad      : 4      # distance to the minor tick label in points
 #xtick.color          : k      # color of the tick labels
-#xtick.labelsize      : medium # fontsize of the tick labels
+xtick.labelsize      : 10 # fontsize of the tick labels
 #xtick.direction      : in     # direction: in or out
 
 #ytick.major.size     : 4      # major tick size in points
@@ -242,7 +244,7 @@ axes.color_cycle    : black,b, g, r, c, m, y, k  # color cycle for plot lines
 #ytick.major.pad      : 4      # distance to major tick label in points
 #ytick.minor.pad      : 4      # distance to the minor tick label in points
 #ytick.color          : k      # color of the tick labels
-#ytick.labelsize      : medium # fontsize of the tick labels
+#ytick.labelsize      : 10 # fontsize of the tick labels
 #ytick.direction      : in     # direction: in or out
 
 
@@ -276,17 +278,17 @@ axes.color_cycle    : black,b, g, r, c, m, y, k  # color cycle for plot lines
 
 ### FIGURE
 # See http://matplotlib.sourceforge.net/api/figure_api.html#matplotlib.figure.Figure
-figure.figsize   : 5, 5    # figure size in inches
-#figure.dpi       : 80      # figure dots per inch
+figure.figsize   : 5.07874, 3.138   # figure size in inches
+figure.dpi       : 300      # figure dots per inch
 #figure.facecolor : 0.75    # figure facecolor; 0.75 is scalar gray
 #figure.edgecolor : white   # figure edgecolor
 
 # The figure subplot parameters.  All dimensions are fraction of the
 # figure width or height
 #figure.subplot.left    : 0.125  # the left side of the subplots of the figure
-#figure.subplot.right   : 0.9    # the right side of the subplots of the figure
-#figure.subplot.bottom  : 0.1    # the bottom of the subplots of the figure
-#figure.subplot.top     : 0.9    # the top of the subplots of the figure
+#figure.subplot.right   : 0.98    # the right side of the subplots of the figure
+#figure.subplot.bottom  : 0.5    # the bottom of the subplots of the figure
+#figure.subplot.top     : 0.90    # the top of the subplots of the figure
 #figure.subplot.wspace  : 0.2    # the amount of width reserved for blank space between subplots
 #figure.subplot.hspace  : 0.2    # the amount of height reserved for white space between subplots
 
@@ -325,7 +327,7 @@ figure.figsize   : 5, 5    # figure size in inches
 # the default savefig params can be different from the display params
 # Eg, you may want a higher resolution, or to make the figure
 # background white
-#savefig.dpi       : 100      # figure dots per inch
+savefig.dpi       : 300      # figure dots per inch
 #savefig.facecolor : white    # figure facecolor when saving
 #savefig.edgecolor : white    # figure edgecolor when saving
 #savefig.extension : auto     # what extension to use for savefig('foo'), or 'auto'

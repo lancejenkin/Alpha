@@ -197,11 +197,11 @@ class MlsDb(object):
             self.logger.info("Minimum number of taps is 3, using 3 taps")
             number_taps = 3
         
-        """  Due to the difficulty in calculating primitive polynomials, the 
-        following taps table is taken from:
-        Impulse response measuremnts using MLS - Jens Hee,
-        url: http://jenshee.dk
-        """
+        # Due to the difficulty in calculating primitive polynomials, the
+        # following taps table is taken from:
+        # Impulse response measuremnts using MLS - Jens Hee,
+        # url: http://jenshee.dk
+
     
         taps_table = [
                 [0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], # taps = 3

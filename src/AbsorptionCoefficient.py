@@ -109,6 +109,7 @@ class AbsorptionCoefficient(object):
 
         # If MLS signal, then utilize the circular convolution property
         signal_type = self.measurement_settings["signal type"]
+        sample_rate = float(self.measurement_settings["sample rate"])
 
         if signal_type.lower() == "maximum length sequence":
             number_taps = int(self.measurement_settings["mls taps"])
@@ -142,29 +143,21 @@ class AbsorptionCoefficient(object):
             # start - if the start of the IRS signal is missed, then part of the - impulse
             # response will corrupt the positive impulse response.
 
-            impulse_length = 2 ** number_taps - 1
+            impulse_length = len(mls)
             window = hanning(0.1 * impulse_length)
 
             self.microphone_response = self.microphone_response[:0.9 * impulse_length]
             self.microphone_response[-len(window) / 2 :] *= window[-len(window) / 2 :]
-            tmp_response = self.microphone_response[0.1 * impulse_length:]
+            tmp_response = self.microphone_response[-0.1 * impulse_length:]
             tmp_response[:len(window) / 2] *= window[:len(window) / 2]
             append(self.microphone_response, tmp_response)
 
-            self.generator_response = self.generator_response[:impulse_length]
             self.generator_response = self.generator_response[:0.9 * impulse_length]
             self.generator_response[-len(window) / 2 :] *= window[-len(window) / 2 :]
-            tmp_response = self.generator_response[0.1 * impulse_length:]
+            tmp_response = self.generator_response[-0.1 * impulse_length:]
             tmp_response[:len(window) / 2] *= window[:len(window) / 2]
             append(self.generator_response, tmp_response)
 
-            self.microphone_response = self.microphone_response[:1638]
-            self.generator_response = self.generator_response[:1638]
-            win = hanning(100)
-            self.microphone_response[-50:] *= win[-50:]
-            self.generator_response[-50:] *= win[-50:]
-
-            self.system_response = ifft(fft(self.microphone_response) / fft(self.generator_response))
         else:
             self.microphone_response = self.average_microphone_response
             self.generator_response = self.average_generator_response
@@ -251,13 +244,13 @@ class AbsorptionCoefficient(object):
         decimation_factor = int(self.analysis_settings["decimation factor"])
         filter_order = int(self.analysis_settings["antialiasing filter order"])
 
-        # Low pass filter the response to prevent aliasing
-        [b, a] = butter(filter_order, 0.8 / decimation_factor , btype="low")
-
-
         # Down sample the responses
-        self.microphone_response_ds = decimate(self.microphone_response, decimation_factor, ftype="fir")
-        self.generator_response_ds = decimate(self.generator_response, decimation_factor, ftype="fir")
+        if decimation_factor > 1:
+            self.microphone_response_ds = decimate(self.microphone_response, decimation_factor, ftype="fir")
+            self.generator_response_ds = decimate(self.generator_response, decimation_factor, ftype="fir")
+        else:
+            self.microphone_response_ds = self.microphone_response
+            self.generator_response_ds = self.generator_response
         #self.system_response_ds = decimate(self.system_response, decimation_factor)
         #self.microphone_response_ds = lfilter(b, a, self.microphone_response[::decimation_factor])
         #self.generator_response_ds = lfilter(b, a, self.generator_response[::decimation_factor])
@@ -344,6 +337,7 @@ class AbsorptionCoefficient(object):
         #self.power_cepstrum = ifft(log(abs(fft(self.microphone_response_ds, fft_size) /  fft(self.generator_response_ds, fft_size)) ** 2))
 
         self.power_cepstrum = self.microphone_cepstrum - self.generator_cepstrum
+
 
 
 

@@ -6,6 +6,8 @@ the default settings to do the measurement, as well as to analyze the response.
 """
 
 import logging
+from multiprocessing import Pool
+
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
@@ -56,13 +58,14 @@ class RapidDelegate(BaseDelegate, QThread):
         self.logger.debug("Entering _setSettings")
 
         self.measurement_settings = self.preferences.measurement_settings
+        self.window.measurement_settings = self.measurement_settings
+        self.window.updateWidgets()
 
         if self.window.alpha is not None:
             self.window.alpha.measurement_settings = self.preferences.measurement_settings
             self.window.alpha.determineAlpha()
             self.window.update()
 
-        self.preferences.done()
 
     def _newMeasurement(self):
         """ Helper method to start a new measurement.

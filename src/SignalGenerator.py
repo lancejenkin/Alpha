@@ -77,8 +77,11 @@ class SignalGenerator(object):
 
         if "gain" in self.parameters:
             gain = float(self.parameters["gain"])
+            if gain <= 0:
+                # Gain is in dB; convert to decimal
+                gain = 10 ** (gain / 20.0)
         else:
-            gain = 1
+            gain = 0.562341325190349 # -6 dB
         # Generate the signal
         if signal_type.lower() == "swept sine":
             self.generateSweptSine()
@@ -216,7 +219,10 @@ class SignalGenerator(object):
         self.logger.debug("Entering generateSweptSine")
 
         # Get signal parameters
-        f_0 = int(self.parameters["lower frequency"])
+        if "lower frequency" in self.parameters:
+            f_0 = int(self.parameters["lower frequency"])
+        else:
+            f_0 = 0
         f_1 = int(self.parameters["upper frequency"])
         T = float(self.parameters["signal length"])
         sample_rate = float(self.parameters["sample rate"])
@@ -287,10 +293,8 @@ class SignalGenerator(object):
         t = arange(0, signal_length, 1 / sample_rate)
 
         # Generate the signal from 0 to Nyquist frequency
-        a = pi * ((sample_rate / 2) - f_0) / (2 * T)
-        b = 2 * pi * f_0
+        s = sin(2 * pi * (((sample_rate / 2)   - 0) / (2 * T) * t + 0) * t)
 
-        s = sin((a * t + b) * t)
 
         # Determine the spectrum
         S = fft(s, fft_size)
@@ -322,8 +326,8 @@ class SignalGenerator(object):
         smp = smp[:len(t)]
 
          # Low pass filter the signal to the upper frequency
-        [b, a] = butter(8, f_1 / (sample_rate / 2), btype="low")
-        smp = lfilter(b, a, smp)
+        [b, a] = butter(8, 0.8 * f_1 / (sample_rate / 2), btype="low")
+        #smp = lfilter(b, a, smp)
 
         # Normalize so that the maximum value is 1
         smp /= max(abs(smp))

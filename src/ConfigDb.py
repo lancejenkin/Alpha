@@ -8,13 +8,19 @@ settings.  It also contains other program information
 import logging
 import pickle
 import sqlite3
+import os
+import sys
 import zlib
 
 __author__ = "Lance Jenkin"
 __email__ = "lancejenkin@gmail.com"
 
 class ConfigDb(object):
-    _CONFIG_FILENAME = "./config.db"
+    if getattr(sys, 'frozen', None):
+        basedir = sys._MEIPASS
+    else:
+        basedir = os.path.dirname(__file__)
+    _CONFIG_FILENAME = os.path.join(basedir, "config.db")
 
     def __init__(self):
         """ Constructor for ConfigDb object """
@@ -79,7 +85,8 @@ class ConfigDb(object):
             "fft size": 2 ** 18,
             "noise samples": 1000,
             "impulse constant": 15,
-            "impulse threshold": 0.02
+            "impulse threshold": 0.02,
+            "gain": 0.5
         }
 
         self.saveSettings("config", config_defaults)

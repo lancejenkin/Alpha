@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'FrequencyResponse.ui'
+# Form implementation generated from reading ui file './/FrequencyResponseView/FrequencyResponse.ui'
 #
-# Created: Fri Jul  6 15:00:54 2012
+# Created: Fri Sep 14 09:31:13 2012
 #      by: PyQt4 UI code generator 4.9
 #
 # WARNING! All changes made in this file will be lost!

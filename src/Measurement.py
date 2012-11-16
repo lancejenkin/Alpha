@@ -77,15 +77,14 @@ class Measurement(object):
         microphone_signal = self.microphone_signals[1]
         generator_signal = self.generator_signals[1]
 
-        microphone_impulse_loc = self._locateSignalImpulse(microphone_signal)
         generator_impulse_loc = self._locateGeneratorImpulse(generator_signal)
+        microphone_impulse_loc = self._locateSignalImpulse(microphone_signal, generator_impulse_loc)
 
-        self.measurement_settings["microphone impulse location"] = (
-            microphone_impulse_loc)
-        self.measurement_settings["generator impulse location"] = (
-            generator_impulse_loc)
 
-    def _locateSignalImpulse(self, signal):
+        self.measurement_settings["microphone impulse location"] = microphone_impulse_loc
+        self.measurement_settings["generator impulse location"] = generator_impulse_loc
+
+    def _locateSignalImpulse(self, signal, generator_impulse=0):
         """ Locates the synchronization impulse in the microphone response.
 
         Finding the synchronization impulse in the microphone is complicated
@@ -96,6 +95,11 @@ class Measurement(object):
         assumed not to have any signal in them and consist of only noise. The
         maximum value is then taken as the peak noise level, and the impulse
         is determined to be in the sample that is T times the peak noise level.
+
+        The algorithm only starts looking for the impulse in the microphone
+        signal after 10 samples that the generator impulse occurred.  This is
+        for protection against the coupling of the cables from the power
+        amplifier and the cable from the microphone.
         """
         self.logger.debug("Entering _locateSignalImpulse")
 
@@ -114,9 +118,10 @@ class Measurement(object):
         threshold = max_noise + impulse_constant * std_noise
 
         for sample_index, sample in enumerate(d_signal):
-            if abs(sample) > threshold:
-                self.logger.debug("Impulse found at %s" % (sample_index))
-                return sample_index
+            if sample_index > generator_impulse + 10:
+                if abs(sample) > threshold:
+                    self.logger.debug("Impulse found at %s" % (sample_index))
+                    return sample_index
 
         self.logger.debug("Impulse not found")
         return -1

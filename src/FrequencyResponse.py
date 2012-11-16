@@ -173,7 +173,7 @@ class FrequencyResponse(object):
         self.microphone_responses = []
         for signal in self.microphone_signals:
             self.microphone_responses.append(signal[signal_start:])
-        self.average_microphone_response = average(self.microphone_responses, axis=0)
+        self.average_microphone_response = average(self.microphone_responses[1:], axis=0)
 
         impulse_location = int(self.measurement_settings["generator impulse location"])
         signal_start = impulse_location + impulse_signal_samples
@@ -181,8 +181,7 @@ class FrequencyResponse(object):
         self.generator_responses = []
         for signal in self.generator_signals:
             self.generator_responses.append(array(signal[signal_start:]))
-        self.average_generator_response = average(self.generator_responses,
-                                                    axis=0)
+        self.average_generator_response = average(self.generator_responses[1:], axis=0)
 
         if signal_type.lower() == "maximum length sequence":
             mls_reps = int(self.measurement_settings["mls reps"])
